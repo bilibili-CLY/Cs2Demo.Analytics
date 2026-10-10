@@ -1,0 +1,37 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>Cs2Demo.Analytics</AssemblyName>
+    <RootNamespace>Cs2Demo.Analytics</RootNamespace>
+    <!-- 首个开发版本。push 到 nuget.org 前必须和用户确认版本号；此处的 Version 改动视为打包配置变更，需谨慎。 -->
+    <Version>0.1.0</Version>
+    <PackageId>Cs2Demo.Analytics</PackageId>
+    <Title>Cs2Demo.Analytics</Title>
+    <Authors>Cs2Demo.Analytics</Authors>
+    <Description>CS2 demo 解析与玩家数据计算（Rating 2.0 / ADR / KPR / KAST / Surviving / Impact）。</Description>
+    <PackageTags>cs2;demo;analytics;rating</PackageTags>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
+    <RepositoryUrl>https://github.com/bilibili-CLY/Cs2Demo.Analytics</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="DemoFile.Game.Cs" Version="0.43.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <_Parameter1>Cs2Demo.Analytics.Tests</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+
+</Project>

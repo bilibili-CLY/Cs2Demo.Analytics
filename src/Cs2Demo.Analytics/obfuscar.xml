@@ -1,0 +1,12 @@
+<?xml version='1.0'?>
+<!-- 双份打包的混淆配置：干净包走 dotnet pack（发 nuget 用），这个配置只产混淆 dll（手交对方用）。
+     前置：dotnet tool install -g Obfuscar.GlobalTool（本机已装，2.2.50）。
+     默认 KeepPublicApi=true（对方照常用公开方法）+ HidePrivateApi=true（内部改名）。
+     注意：输出目录里的 Mapping.txt 是反混淆钥匙，绝不外发，绝不进仓库。 -->
+<Obfuscator>
+  <Var name="InPath" value="/Users/cly/Desktop/Cs2Demo.Analytics/src/Cs2Demo.Analytics/bin/Release/net8.0" />
+  <Var name="OutPath" value="/Users/cly/Desktop/Cs2Demo.Analytics/src/Cs2Demo.Analytics/bin/Release/obfuscated" />
+  <Var name="KeepPublicApi" value="true" />
+  <Var name="HidePrivateApi" value="true" />
+  <Module file="$(InPath)/Cs2Demo.Analytics.dll" />
+</Obfuscator>

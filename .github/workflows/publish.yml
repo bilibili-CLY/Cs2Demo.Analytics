@@ -1,0 +1,46 @@
+name: publish
+
+# 打 tag 即发布：git tag v0.1.0 && git push origin v0.1.0
+# tag 必须等于库 csproj 里的 Version（带 v 前缀），对不上直接失败。
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: read
+  id-token: write # Trusted Publishing（OIDC）必需
+
+jobs:
+  build-test-push:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Check tag matches csproj Version
+        run: |
+          VERSION=$(grep -oPm1 '(?<=<Version>)[^<]+' src/Cs2Demo.Analytics/Cs2Demo.Analytics.csproj)
+          test "${GITHUB_REF_NAME}" = "v${VERSION}" || { echo "tag ${GITHUB_REF_NAME} != v${VERSION}，拒绝发布"; exit 1; }
+
+      - name: Download golden demo (193MB, 不进 git)
+        run: |
+          mkdir -p tests/Cs2Demo.Analytics.Tests/TestData
+          gh release download dem-data -p perfect-world.dem -D tests/Cs2Demo.Analytics.Tests/TestData/
+        env:
+          GH_TOKEN: ${{ github.token }}
+
+      - run: dotnet test -c Release
+
+      - run: dotnet pack src/Cs2Demo.Analytics/Cs2Demo.Analytics.csproj -c Release --no-build
+
+      - name: NuGet login (OIDC, 1 小时临时 key)
+        uses: NuGet/login@v1
+        id: login
+        with:
+          user: ${{ secrets.NUGET_USER }}
+
+      - run: dotnet nuget push "src/Cs2Demo.Analytics/bin/Release/*.nupkg" --api-key ${{ steps.login.outputs.NUGET_API_KEY }} --source https://api.nuget.org/v3/index.json --skip-duplicate

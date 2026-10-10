@@ -1,0 +1,9 @@
+bin/
+obj/
+TestResults/
+*.user
+.vs/
+.vscode/
+.DS_Store
+# golden 用 .dem（193MB）不进 git，CI 从 GitHub Release 附件 dem-data 下载；见 AGENTS.md。
+tests/Cs2Demo.Analytics.Tests/TestData/*.dem
