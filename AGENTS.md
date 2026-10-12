@@ -43,8 +43,8 @@
 - `dotnet pack src/Cs2Demo.Analytics/Cs2Demo.Analytics.csproj -c Release`——打干净包
   （`bin/Release/Cs2Demo.Analytics.<版本>.nupkg`，发 nuget 用；**push 前必须确认版本号，Key 不进仓库**）。
 - 混淆版（手动分发用，对方项目直接 dll 引用）：前置 `dotnet tool install -g Obfuscar.GlobalTool`
- （本机已装 2.2.50；运行时需 `DOTNET_ROOT=/opt/homebrew/Cellar/dotnet/10.0.106/libexec`，
-  否则工具会找到旧的 /usr/local/share/dotnet 而启动失败）。
+ （本机已装 2.2.50；运行时需 `DOTNET_ROOT=/opt/homebrew/Cellar/dotnet/10.0.401_1/libexec`，
+  以 Cellar 当前版本为准，旧的 10.0.106 已被 brew 升级掉，否则工具会找到旧的 /usr/local/share/dotnet 而启动失败）。
   流程：先 `dotnet pack -c Release`，再 `obfuscar.console src/Cs2Demo.Analytics/obfuscar.xml`，
   产物 `bin/Release/obfuscated/Cs2Demo.Analytics.dll`（已验证 golden 数一致）。
   配置默认保留公开 API、只改内部名；`Mapping.txt` 是反混淆钥匙，绝不外发。

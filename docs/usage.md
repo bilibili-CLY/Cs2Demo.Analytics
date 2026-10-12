@@ -8,7 +8,7 @@
 **A. NuGet 包引用（干净版）**：对方项目 `.csproj` 加：
 
 ```xml
-<PackageReference Include="Cs2Demo.Analytics" Version="0.1.0" />
+<PackageReference Include="Cs2Demo.Analytics" Version="0.2.0" />
 ```
 
 **B. 混淆 dll 直接引用（手交）**：把 `Cs2Demo.Analytics.dll`（混淆版）拷到对方项目

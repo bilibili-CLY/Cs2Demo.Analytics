@@ -5,7 +5,7 @@ CS2 demo 解析与玩家数据计算的 .NET 库（`net8.0`，net8/9/10 的项�
 ## 安装
 
 ```bash
-dotnet add package Cs2Demo.Analytics --version 0.1.0
+dotnet add package Cs2Demo.Analytics --version 0.2.0
 ```
 
 ## 快速开始

@@ -7,11 +7,11 @@
     <AssemblyName>Cs2Demo.Analytics</AssemblyName>
     <RootNamespace>Cs2Demo.Analytics</RootNamespace>
     <!-- 首个开发版本。push 到 nuget.org 前必须和用户确认版本号；此处的 Version 改动视为打包配置变更，需谨慎。 -->
-    <Version>0.1.0</Version>
+    <Version>0.2.0</Version>
     <PackageId>Cs2Demo.Analytics</PackageId>
     <Title>Cs2Demo.Analytics</Title>
     <Authors>Cs2Demo.Analytics</Authors>
-    <Description>CS2 demo 解析与玩家数据计算（Rating 2.0 / ADR / KPR / KAST / Surviving / Impact）。</Description>
+    <Description>CS2 demo 解析与玩家数据计算（Rating 2.0 / Rating 3.0 / ADR / KPR / KAST / Surviving / Impact）。</Description>
     <PackageTags>cs2;demo;analytics;rating</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
