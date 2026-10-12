@@ -40,6 +40,10 @@ foreach (var s in StatsCalculator.CalculateAll(data))
 var me = StatsCalculator.Calculate(data, "76561198xxxxxxxxx");
 Console.WriteLine($"KAST={me.Kast}, 存活率={me.Surviving}, Impact={me.Impact}");
 Console.WriteLine($"杀={me.Kills} 死={me.Deaths} 助攻={me.Assists} 总伤={me.TotalDamage}");
+
+// Rating30（实验性本地近似，非 HLTV 官方值）：独立方法、独立返回类型，与上面互不影响
+foreach (var s in StatsCalculator.CalculateAll30(data))
+    Console.WriteLine($"{s.Name}: Rating30={s.Rating30}, Swing={s.RoundSwing}, MK={s.MultiKill}");
 ```
 
 ## 字段速查

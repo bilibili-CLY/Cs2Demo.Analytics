@@ -50,4 +50,31 @@ public sealed class MatchBuilderTests
         builder.AddPlayer("1", "new");
         Assert.Equal("new", builder.Build().Players.Single().Name);
     }
+
+    [Fact]
+    public void Build_KilledPlayer_MarksSurvivalFalse()
+    {
+        // 终结一杀与回合结束同 tick 时 GOTV 快照还是“活着”，以击杀表为准纠正。
+        var builder = new MatchBuilder();
+        builder.StartRound(0);
+        builder.AddKill(new KillEvent { RoundNumber = 1, Tick = 100, AttackerSteamId = "A", VictimSteamId = "B" });
+        builder.AddSurvival(new SurvivalInfo { RoundNumber = 1, SteamId = "A", Survived = true });
+        builder.AddSurvival(new SurvivalInfo { RoundNumber = 1, SteamId = "B", Survived = true });
+
+        var data = builder.Build();
+        Assert.True(data.Survivals.Single(s => s.SteamId == "A").Survived);
+        Assert.False(data.Survivals.Single(s => s.SteamId == "B").Survived);
+    }
+
+    [Fact]
+    public void TrackHealth_SelfDamage_ReducesNextEnemyHit()
+    {
+        // 自己雷炸掉 30 血，敌人再打 25：敌人只记 25，不记 55。
+        var builder = new MatchBuilder();
+        builder.StartRound(0);
+        Assert.Equal(30, builder.TrackHealth(1, "P", 70)); // 自伤跟血条
+        Assert.Empty(builder.Build().Damages);
+        builder.AddDamage(new DamageEvent { RoundNumber = 1, AttackerSteamId = "A", VictimSteamId = "P" }, 45);
+        Assert.Equal(25, builder.Build().Damages.Single().Damage);
+    }
 }

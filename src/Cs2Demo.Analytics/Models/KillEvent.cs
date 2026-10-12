@@ -7,7 +7,10 @@ public sealed class KillEvent
     public int RoundNumber { get; set; }
     /// <summary>发生 tick，用于补枪（trade）判定。</summary>
     public int Tick { get; set; }
-    /// <summary>击杀者 SteamId。</summary>
+    /// <summary>
+    /// 击杀者 SteamId。炸弹/世界击杀与队伤只记受害者死亡时为空字符串（死亡事件，
+    /// 不给任何人记击杀/助攻/KAST击杀轮，Swing 只给受害者记负、不给凶手记正）。
+    /// </summary>
     public string AttackerSteamId { get; set; } = "";
     /// <summary>受害者 SteamId。</summary>
     public string VictimSteamId { get; set; } = "";

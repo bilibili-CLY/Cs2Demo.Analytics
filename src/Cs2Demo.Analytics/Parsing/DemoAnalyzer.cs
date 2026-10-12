@@ -105,17 +105,37 @@ public static class DemoAnalyzer
 
         var killer = SteamId(e.Attacker);
         var victim = SteamId(e.Player);
-        if (string.IsNullOrEmpty(killer) || string.IsNullOrEmpty(victim) || killer == victim)
+        if (string.IsNullOrEmpty(victim))
             return;
 
         var killerSide = SideOf(e.Attacker);
         var victimSide = SideOf(e.Player);
-        if (!string.IsNullOrEmpty(killerSide) && killerSide == victimSide)
-            return; // 队伤
+
+        if (!string.IsNullOrEmpty(killer) && killer == victim)
+            return; // 自杀：HLTV 不计，直接丢掉
 
         builder.EnsureRound(CurrentTick(demo));
-        builder.AddPlayer(killer, e.Attacker!.PlayerName);
         builder.AddPlayer(victim, e.Player!.PlayerName);
+
+        // 炸弹/世界击杀（无凶手）与队伤：HLTV 给受害者记死亡，不给凶手记击杀。
+        // 记一条“只有受害者”的死亡事件（助攻一并丢掉，HLTV 不会对这类击杀记助攻）。
+        if (string.IsNullOrEmpty(killer) || (!string.IsNullOrEmpty(killerSide) && killerSide == victimSide))
+        {
+            builder.AddKill(new KillEvent
+            {
+                RoundNumber = builder.CurrentRound,
+                Tick = CurrentTick(demo),
+                AttackerSteamId = "",
+                VictimSteamId = victim,
+                AssisterSteamId = "",
+                AttackerSide = Sides.Unknown,
+                VictimSide = victimSide,
+                Weapon = WeaponNames.Normalize(e.Weapon),
+            });
+            return;
+        }
+
+        builder.AddPlayer(killer, e.Attacker!.PlayerName);
         var assister = SteamId(e.Assister);
         if (!string.IsNullOrEmpty(assister))
             builder.AddPlayer(assister, e.Assister!.PlayerName);
@@ -140,26 +160,37 @@ public static class DemoAnalyzer
 
         var attacker = SteamId(e.Attacker);
         var victim = SteamId(e.Player);
-        if (string.IsNullOrEmpty(attacker) || string.IsNullOrEmpty(victim) || attacker == victim)
+        if (string.IsNullOrEmpty(victim))
             return;
 
         var attackerSide = SideOf(e.Attacker);
         var victimSide = SideOf(e.Player);
-        if (!string.IsNullOrEmpty(attackerSide) && attackerSide == victimSide)
-            return; // 队伤
 
         builder.EnsureRound(CurrentTick(demo));
-        builder.AddPlayer(attacker, e.Attacker!.PlayerName);
+        if (!string.IsNullOrEmpty(attacker))
+            builder.AddPlayer(attacker, e.Attacker!.PlayerName);
         builder.AddPlayer(victim, e.Player!.PlayerName);
-        builder.AddDamage(new DamageEvent
+
+        // 血条永远要跟（自伤/队伤/世界伤害也会掉血，不跟的话下一次敌人命中会把这部分
+        // 误算到敌人头上，ADR 系统性偏高）；只有敌方造成的才记入伤害表。
+        var real = builder.TrackHealth(builder.CurrentRound, victim, e.Health);
+        if (string.IsNullOrEmpty(attacker) || attacker == victim)
+            return;
+        if (!string.IsNullOrEmpty(attackerSide) && attackerSide == victimSide)
+            return; // 队伤：跟血条，不记伤害
+        if (real <= 0)
+            return;
+
+        builder.RecordDamage(new DamageEvent
         {
             RoundNumber = builder.CurrentRound,
             AttackerSteamId = attacker,
             VictimSteamId = victim,
+            Damage = real,
             AttackerSide = attackerSide,
             VictimSide = victimSide,
             Weapon = WeaponNames.Normalize(e.Weapon),
-        }, e.Health);
+        });
     }
 
     private static void OnRoundEnd(CsDemoParser demo, MatchBuilder builder, Source1RoundEndEvent e)

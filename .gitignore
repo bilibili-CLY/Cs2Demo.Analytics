@@ -7,3 +7,5 @@ TestResults/
 .DS_Store
 # golden 用 .dem（193MB）不进 git，CI 从 GitHub Release 附件 dem-data 下载；见 AGENTS.md。
 tests/Cs2Demo.Analytics.Tests/TestData/*.dem
+# 拟合用 demo（体积大、可重下，不进仓库）。
+docs/demo/
