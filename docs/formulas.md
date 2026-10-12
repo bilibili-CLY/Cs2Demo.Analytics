@@ -1,6 +1,7 @@
 # 统计口径（V1）
 
 V1 共 6 项：KPR / ADR / KAST / Surviving / Impact / Rating2.0。
+公式版本 `StatsCalculator.Rating20Version`（当前 `"1.0.0"`，见返回数据的 `Version` 字段）。
 实现见 `src/Cs2Demo.Analytics/StatsCalculator.cs`，对应测试见
 `tests/Cs2Demo.Analytics.Tests/StatsCalculatorTests.cs`（手算期望值）。
 
@@ -63,6 +64,7 @@ V1 时这句话成立；现已加 Rating30 V0（实验性本地近似，见下�
 
 # Rating30（拟合版，本地近似，非 HLTV 官方值）
 
+公式版本 `StatsCalculator.Rating30Version`（当前 `"1.0.0"`，见返回数据的 `Version` 字段）。
 状态：**已拟合**。HLTV 从未公开 3.0 精确公式（2025-08 首发、
 2025-10 hotfix、2026-10 精度更新三篇官方公告都只给结构，不给系数与胜率表），
 本节公式是用 10 张 EPL S24 地图（100 个 player-map，官方记分板转录

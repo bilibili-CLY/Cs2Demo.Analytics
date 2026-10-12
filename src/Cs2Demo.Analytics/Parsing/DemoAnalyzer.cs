@@ -7,7 +7,8 @@ namespace Cs2Demo.Analytics;
 
 /// <summary>
 /// Demo 解析入口（两步 API 的第一步）。只做“demo 文件 -&gt; 原始数据”，不做任何指标计算。
-/// 热身回合、自杀、队伤会被丢掉；BOT（SteamID 为 0）不建档。
+/// 热身回合、自杀会被丢掉；BOT（SteamID 为 0）不建档。
+/// 队杀与 C4 炸死记死亡（凶手为空，不记击杀），与官方记分板一致。
 /// </summary>
 public static class DemoAnalyzer
 {

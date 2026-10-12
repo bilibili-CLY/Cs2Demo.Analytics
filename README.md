@@ -23,6 +23,8 @@ foreach (var s in StatsCalculator.CalculateAll(data))
 
 ## 说明
 
-- 热身回合、自杀、队伤会被丢掉；BOT 不计入。
+- 热身回合、自杀会被丢掉；BOT 不计入。队杀与 C4 炸死记死亡（不记击杀），与官方记分板一致。
 - 缺伤害数据时 `Adr` 为 null（`Rating20` 会按 ADR=0 继续算）；零回合时 6 项全为 null。
 - `Rating20` 是社区逆向拟合的近似值，不是 HLTV 官方值；`Impact` 口径见 `docs/formulas.md`。
+- Rating30（实验性本地近似，非 HLTV 官方值）：`StatsCalculator.Calculate30 / CalculateAll30` → `PlayerMatchStats30`，用法见 `docs/usage.md`。
+- 返回数据带 `Version` 公式版本（Rating20 和 Rating30 当前都是 `"1.0.0"`）；公式优化后版本号往上加，靠它判断口径。
