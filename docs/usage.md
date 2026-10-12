@@ -52,3 +52,4 @@ foreach (var s in StatsCalculator.CalculateAll30(data))
 - `Kpr / Adr / Kast / Surviving / Impact / Rating20`：6 项指标（`double?`）。
 - `Adr` 缺伤害数据时为 null（此时 `Rating20` 按 ADR=0 照算）；零回合时 6 项全 null。
 - `SteamId` 是字符串；阵营只有 `"T" / "CT" / ""` 三种。
+- `Version`：公式版本（Rating20 和 Rating30 当前都是 `"1.0.0"`，与 `StatsCalculator.Rating20Version / Rating30Version` 一致）。公式优化后版本号往上加，调用方靠它判断口径。

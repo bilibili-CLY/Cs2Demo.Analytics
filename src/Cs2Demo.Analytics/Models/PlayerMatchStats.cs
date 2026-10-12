@@ -10,6 +10,8 @@ public sealed class PlayerMatchStats
     public string SteamId { get; set; } = "";
     /// <summary>玩家名。</summary>
     public string Name { get; set; } = "";
+    /// <summary>Rating20 公式版本（如 "1.0.0"），与 <c>StatsCalculator.Rating20Version</c> 一致。</summary>
+    public string Version { get; set; } = "";
     /// <summary>总回合数。</summary>
     public int Rounds { get; set; }
     /// <summary>击杀数（不含自杀/队伤）。</summary>

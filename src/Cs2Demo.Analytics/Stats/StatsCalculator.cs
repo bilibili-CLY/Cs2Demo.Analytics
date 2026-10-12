@@ -8,6 +8,10 @@ namespace Cs2Demo.Analytics;
 /// </summary>
 public static class StatsCalculator
 {
+    /// <summary>Rating20 公式版本。公式有改动时往上加，调用方用它判断口径。</summary>
+    public const string Rating20Version = "1.0.0";
+    /// <summary>Rating30 公式版本。公式有改动时往上加，调用方用它判断口径。</summary>
+    public const string Rating30Version = "1.0.0";
     /// <summary>算出所有玩家的单场统计。</summary>
     public static IReadOnlyList<PlayerMatchStats> CalculateAll(MatchData data)
     {
@@ -36,6 +40,7 @@ public static class StatsCalculator
             SteamId = steamId,
             Name = player.Name,
             Rounds = rounds,
+            Version = Rating20Version,
         };
 
         if (rounds <= 0)
@@ -103,6 +108,7 @@ public static class StatsCalculator
             SteamId = steamId,
             Name = player.Name,
             Rounds = rounds,
+            Version = Rating30Version,
         };
 
         if (rounds <= 0)
