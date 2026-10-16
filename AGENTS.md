@@ -1,6 +1,7 @@
 # AGENTS.md — Cs2Demo.Analytics
 
-> 项目已落地（0.2.0 已发布）；0.3.0 起解析后端改为 csda（见「技术栈」）。构建/测试/打包命令均已验证。
+> 项目已落地；0.1.0 / 0.2.0 / 0.3.0（当前）已发布到 nuget.org。
+> 0.3.0 起解析后端改为 csda，并把 Rating30 升级为经济加权版（见「技术栈」）。构建/测试/打包命令均已验证。
 
 ## 目标与交付物
 
@@ -65,10 +66,16 @@
   首次用之前：nuget.org 建 Trusted Publishing 策略
  （Owner=你的 nuget 用户名，仓库 `bilibili-CLY/Cs2Demo.Analytics`，workflow 文件 `publish.yml`），
   再在 GitHub 仓库 Secrets 加 `NUGET_USER`（nuget.org 用户名，不是邮箱）。
-- 已发布 0.1.0 / 0.2.0 到本地私源 `~/nuget-feed`（源名 `Local`）。0.3.0 已用外部控制台项目端到端验证
-  （装包 → 输出目录自动带 `csda/<rid>/` → 跑 golden demo，V1/V30 数一致）。
+- 已发布到 nuget.org：`0.1.0` / `0.2.0` / **`0.3.0`**（`dotnet add package Cs2Demo.Analytics`）。
+  0.1.0 最早也发过本地私源 `~/nuget-feed`（源名 `Local`）。
+  0.3.0 发布前已用外部控制台项目端到端验证（装包 → 输出目录自动带 `csda/<rid>/` → 跑 golden demo，V1/V30 数一致）。
   包 README 已随包（`README.md` + `PackageReadmeFile`）。
   多机共享再考虑 GitHub/Azure 这类带 token 的私源；`dotnet format` 未配置，暂不用。
+- 故障排查：CI 若挂在「下载 golden demo」这步（日志 `release not found`），说明 `dem-data`
+  Release 丢了（tag 可能还在，但 Release 内容没了）。重建即可：
+  `gh release create dem-data --verify-tag --latest=false` →
+  `gh release upload dem-data tests/Cs2Demo.Analytics.Tests/TestData/perfect-world.dem` →
+  `gh run rerun <run-id>`。
 
 ## 与用户协作的方式
 

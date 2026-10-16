@@ -138,8 +138,8 @@ Rating30 是实验性本地近似，不是 HLTV 官方值（官方从未公开�
   就知道这行数是哪个公式算的。
 - 对方项目更新包后，原来调 `Calculate` 的代码不用改（只加了字段，没改签名）；
   要用 Rating30 就调 `Calculate30` 那一套。
-- **0.3.0 的口径变化**：AD​R / KAST 改由 csda 计算（KAST 单位从 0~1 变成 0~100），
+- **0.3.0：解析后端与 V1 口径变化**：ADR / KAST 改由 csda 计算（KAST 单位从 0~1 变成 0~100），
   Rating20 `Version` 升到 `"2.0.0"`。旧版结果与新版本不可直接比较。
-- **0.3.0 的口径变化**：Rating30 升级为经济加权版——新增 `EKpr` / `EAdr`（Rating30 用它俩替代 KPR / ADR），
+- **0.3.0：Rating30 升级为经济加权版**：新增 `EKpr` / `EAdr`（Rating30 用它俩替代 KPR / ADR），
   `RoundSwing` 改为经济 + 安包 + 贡献分摊的 v2，`Rating30` 用 10 张 EPL demo 重拟权重。
   Rating30 `Version` 升到 `"3.0.0"`，数值与旧的 `"2.0.0"` 不可直接比较；Rating20 仍是 `"2.0.0"` 不变。

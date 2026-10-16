@@ -76,7 +76,8 @@ csda 没有逐回合存活表，本库用 `playerEconomies` + 死亡名单反推
 
 - 阵营映射：`2 → "T"`、`3 → "CT"`、其他 `""`（未知）。
 - 武器归一化（`WeaponNames`）：csda 显示名反查回规范名；未知非空名字记 `UNKNOWN`。
-  计算用不到武器，记下来是为以后免 breaking change。
+  武器名 / 类型目前不参与计算（经济加权的难度只看装备价值），记下来是为以后免 breaking change；
+  击杀的 `IsAssistedFlash` 已用于 RoundSwing 的贡献分摊。
 
 ## 异常与兜底
 
