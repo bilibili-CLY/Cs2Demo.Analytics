@@ -2,7 +2,8 @@ namespace Cs2Demo.Analytics;
 
 /// <summary>
 /// 武器名归一化（纯函数，可单测）。V1 计算用不到武器，但解析时一并记录，
-/// 避免以后加字段造成 breaking change。未知非空名字归为 UNKNOWN。
+/// 避免以后加字段造成 breaking change。既接受 `weapon_xxx` 内部名，也接受 csda 直接给出的展示名；
+/// 未知非空名字归为 UNKNOWN。
 /// </summary>
 internal static class WeaponNames
 {
@@ -21,6 +22,10 @@ internal static class WeaponNames
 
         if (ShortNames.TryGetValue(key, out var display))
             return display;
+
+        // csda 直接给出展示名（如 "AK-47"、"HE Grenade"），此处反向查回规范展示名。
+        if (DisplayNames.TryGetValue(key, out var canonical))
+            return canonical;
 
         foreach (var pair in PrefixNames)
         {
@@ -80,6 +85,19 @@ internal static class WeaponNames
         ["c4"] = "C4",
         ["planted_c4"] = "C4",
     };
+
+    /// <summary>展示名 -> 规范展示名（csda 给的已是展示名，需原样归一）。</summary>
+    private static readonly Dictionary<string, string> DisplayNames = BuildDisplayNames();
+
+    private static Dictionary<string, string> BuildDisplayNames()
+    {
+        var map = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (var value in ShortNames.Values)
+            map[value.ToLowerInvariant()] = value;
+        map["knife"] = "Knife";
+        map["c4"] = "C4";
+        return map;
+    }
 
     private static readonly KeyValuePair<string, string>[] PrefixNames =
     {

@@ -16,16 +16,24 @@ public sealed class KillEvent
     public string VictimSteamId { get; set; } = "";
     /// <summary>助攻者 SteamId，无助攻为空字符串。</summary>
     public string AssisterSteamId { get; set; } = "";
-    /// <summary>
-    /// 被补枪回合记账对象：本次击杀补掉了哪一位队友的枪。
-    /// 例如 A 打死 B，5 秒内 C（B 的队友）打死 A，则 C 这次击杀的 <c>TradedSteamId</c> 为 B。
-    /// 无补枪为空字符串。
-    /// </summary>
-    public string TradedSteamId { get; set; } = "";
+    /// <summary>该击杀是否为补枪击杀（csda 的 isTradeKill 原值）。</summary>
+    public bool IsTradeKill { get; set; }
+    /// <summary>该死亡是否被补枪（csda 的 isTradeDeath 原值）。</summary>
+    public bool IsTradeDeath { get; set; }
     /// <summary>击杀者阵营（T/CT/空）。</summary>
     public string AttackerSide { get; set; } = Sides.Unknown;
     /// <summary>受害者阵营（T/CT/空）。</summary>
     public string VictimSide { get; set; } = Sides.Unknown;
     /// <summary>归一化后的武器名（如 AK-47、AWP、Knife），未知为 UNKNOWN，缺失为空字符串。</summary>
     public string Weapon { get; set; } = "";
+    /// <summary>csda 的武器类别（pistol / rifle / smg / sniper / grenade / melee / equipment），未知为空字符串。</summary>
+    public string WeaponType { get; set; } = "";
+    /// <summary>是否爆头击杀（csda 原值）。</summary>
+    public bool IsHeadshot { get; set; }
+    /// <summary>助攻是否为闪光助攻（csda 的 isAssistedFlash 原值）。</summary>
+    public bool IsAssistedFlash { get; set; }
+    /// <summary>击杀者本回合初始装备总值（来自 csda playerEconomies），未知为 0。</summary>
+    public int KillerEquipmentValue { get; set; }
+    /// <summary>受害者本回合初始装备总值（来自 csda playerEconomies），未知为 0。</summary>
+    public int VictimEquipmentValue { get; set; }
 }

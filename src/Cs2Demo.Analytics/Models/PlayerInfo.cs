@@ -7,4 +7,6 @@ public sealed class PlayerInfo
     public string SteamId { get; set; } = "";
     /// <summary>玩家名。</summary>
     public string Name { get; set; } = "";
+    /// <summary>csda 算好的该玩家聚合值，作为各项指标的口径来源。</summary>
+    public PlayerCsdaStats Csda { get; set; } = new();
 }

@@ -1,4 +1,3 @@
-using System.Text;
 using Cs2Demo.Analytics;
 
 namespace Cs2Demo.Analytics.Tests;
@@ -18,15 +17,17 @@ public sealed class DemoAnalyzerErrorTests
     }
 
     [Fact]
-    public void ParseStream_Null_Throws()
+    public void ParseFile_Garbage_WrapsInInvalidOperation()
     {
-        Assert.Throws<ArgumentNullException>(() => DemoAnalyzer.ParseStream(null!));
-    }
-
-    [Fact]
-    public void ParseStream_Garbage_WrapsInInvalidOperation()
-    {
-        using var stream = new MemoryStream(Encoding.UTF8.GetBytes("this is not a demo"));
-        Assert.Throws<InvalidOperationException>(() => DemoAnalyzer.ParseStream(stream, "garbage"));
+        var path = Path.Combine(Path.GetTempPath(), Guid.NewGuid().ToString("N") + ".dem");
+        File.WriteAllText(path, "this is not a demo");
+        try
+        {
+            Assert.Throws<InvalidOperationException>(() => DemoAnalyzer.ParseFile(path));
+        }
+        finally
+        {
+            File.Delete(path);
+        }
     }
 }

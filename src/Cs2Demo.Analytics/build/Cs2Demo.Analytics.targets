@@ -1,0 +1,12 @@
+<Project>
+  <!--
+    随包 csda 二进制（csda/<rid>/csda）复制到消费者的输出目录，
+    使 CsdaBinaryLocator 能在 AppContext.BaseDirectory/csda/<rid>/csda 找到它。
+  -->
+  <ItemGroup>
+    <None Include="$(MSBuildThisFileDirectory)..\csda\**\*"
+          Link="csda\%(RecursiveDir)%(Filename)%(Extension)"
+          CopyToOutputDirectory="PreserveNewest"
+          Visible="false" />
+  </ItemGroup>
+</Project>

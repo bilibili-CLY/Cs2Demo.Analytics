@@ -1,6 +1,6 @@
 # AGENTS.md — Cs2Demo.Analytics
 
-> 仓库目前为空（脚手架阶段，计划使用 C# / .NET）。暂无可验证的构建/测试命令——待项目结构落地后更新本文件。
+> 项目已落地（0.2.0 已发布）；0.3.0 起解析后端改为 csda（见「技术栈」）。构建/测试/打包命令均已验证。
 
 ## 目标与交付物
 
@@ -23,14 +23,24 @@
 - C# / .NET：库 `src/Cs2Demo.Analytics` 目标 `net8.0`（net8/9/10 调用方都能引用）；
   测试 `tests/Cs2Demo.Analytics.Tests` 目标 `net10.0`（本机只有 .NET 10 runtime，只影响本地跑测试，不影响发布包）。
 - SDK 用 `global.json` 锁定（10.0.106，rollForward latestMajor）。
-- 唯一外部依赖：`DemoFile.Game.Cs 0.43.1`（demo 解析）。
+- 解析用 csda（akiver/cs-demo-analyzer，MIT），**不是 NuGet 依赖**：随包内置 5 平台二进制
+  （`src/Cs2Demo.Analytics/csda/<rid>/csda[.exe]`，约 56MB，**进 git**）；`build/Cs2Demo.Analytics.targets`
+  会把它复制到调用方输出目录 `csda/<rid>/`。因此包体积约 58MB，只支持 win-x64 / osx-x64 / osx-arm64 /
+  linux-x64 / linux-arm64。上游许可证见 `csda/LICENSE-csda.txt`。
 
 ## 入口点与项目边界
 
-- `DemoAnalyzer.ParseFile(path) / ParseStream(stream)` → `MatchData`（只解析，不计算）。
+- `DemoAnalyzer.ParseFile(path)` → `MatchData`（只解析，不计算；`ParseStream` 已删，csda 只吃本地文件）。
+  可用 `DemoAnalyzer.CsdaExecutablePath` 指定自带的 csda。
 - `StatsCalculator.CalculateAll(data) / Calculate(data, steamId)` → V1 6 项
-  KPR / ADR / KAST / Surviving / Impact / Rating2.0（只计算，不碰 demo 文件）。
-- 口径文档：`docs/formulas.md`（公式 + 与参考仓库的差异），`docs/demo-format.md`（事件映射）。
+  KPR / ADR / KAST / Surviving / Impact / Rating2.0；`CalculateAll30 / Calculate30` → Rating30 9 项
+  （KPR / ADR / eKPR / eADR / KAST / Surviving / MultiKill / RoundSwing / Rating30）。只计算，不碰 demo 文件。
+  口径版本 `Rating20Version` = `"2.0.0"`，`Rating30Version` = `"3.0.0"`。
+- 口径来源：KPR / ADR / KAST / Rating2.0 直接取 csda；Surviving / Impact / MultiKill 由 csda 原料派生；
+  eKPR / eADR（经济加权）、RoundSwing、Rating30 由本库计算（Rating30 用 eKPR / eADR 替代 KPR / ADR）。
+  KAST 单位是 0~100。
+- 口径文档：`docs/formulas.md`（公式 + 与参考仓库的差异），`docs/demo-format.md`（csda→MatchData 映射），
+  `docs/csda-integration.md`（csda 参考手册）。
 - 固定 `.dem`（`tests/Cs2Demo.Analytics.Tests/TestData/perfect-world.dem`，de_nuke，
   SHA256 见 `GoldenDemoTests`）已锁 golden：18 回合 / 135 杀 / 10 人全员断言；
   不要替换该文件，换 demo 必须同步更新期望表。
@@ -55,7 +65,8 @@
   首次用之前：nuget.org 建 Trusted Publishing 策略
  （Owner=你的 nuget 用户名，仓库 `bilibili-CLY/Cs2Demo.Analytics`，workflow 文件 `publish.yml`），
   再在 GitHub 仓库 Secrets 加 `NUGET_USER`（nuget.org 用户名，不是邮箱）。
-- 已发布 0.1.0 到本地私源 `~/nuget-feed`（源名 `Local`，已用外部控制台项目验证引用OK）。
+- 已发布 0.1.0 / 0.2.0 到本地私源 `~/nuget-feed`（源名 `Local`）。0.3.0 已用外部控制台项目端到端验证
+  （装包 → 输出目录自动带 `csda/<rid>/` → 跑 golden demo，V1/V30 数一致）。
   包 README 已随包（`README.md` + `PackageReadmeFile`）。
   多机共享再考虑 GitHub/Azure 这类带 token 的私源；`dotnet format` 未配置，暂不用。
 

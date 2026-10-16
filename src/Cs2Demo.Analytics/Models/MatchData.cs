@@ -16,6 +16,8 @@ public sealed class MatchData
     public List<DamageEvent> Damages { get; set; } = new();
     /// <summary>每回合存活表。</summary>
     public List<SurvivalInfo> Survivals { get; set; } = new();
+    /// <summary>残局记录表（csda 的 clutches 原样带出）。</summary>
+    public List<ClutchInfo> Clutches { get; set; } = new();
     /// <summary>元信息。</summary>
     public MatchMeta Meta { get; set; } = new();
 }

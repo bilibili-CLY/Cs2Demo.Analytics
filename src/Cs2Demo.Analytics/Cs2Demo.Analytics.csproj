@@ -6,26 +6,28 @@
     <Nullable>enable</Nullable>
     <AssemblyName>Cs2Demo.Analytics</AssemblyName>
     <RootNamespace>Cs2Demo.Analytics</RootNamespace>
-    <!-- 首个开发版本。push 到 nuget.org 前必须和用户确认版本号；此处的 Version 改动视为打包配置变更，需谨慎。 -->
-    <Version>0.2.0</Version>
+    <!-- push 到 nuget.org 前必须和用户确认版本号；此处的 Version 改动视为打包配置变更，需谨慎。 -->
+    <Version>0.3.0</Version>
     <PackageId>Cs2Demo.Analytics</PackageId>
     <Title>Cs2Demo.Analytics</Title>
     <Authors>Cs2Demo.Analytics</Authors>
-    <Description>CS2 demo 解析与玩家数据计算（Rating 2.0 / Rating 3.0 / ADR / KPR / KAST / Surviving / Impact）。</Description>
-    <PackageTags>cs2;demo;analytics;rating</PackageTags>
+    <Description>CS2 demo 解析与玩家数据计算（Rating 2.0 / Rating 3.0 / ADR / KPR / KAST / Surviving / Impact）。基于 csda（akiver/cs-demo-analyzer）解析。</Description>
+    <PackageTags>cs2;demo;analytics;rating;csda</PackageTags>
     <PackageReadmeFile>README.md</PackageReadmeFile>
     <PackageLicenseExpression>Apache-2.0</PackageLicenseExpression>
     <RepositoryUrl>https://github.com/bilibili-CLY/Cs2Demo.Analytics</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <!-- None 项全部显式声明（随包 csda 二进制等），避免与默认 glob 重复。 -->
+    <EnableDefaultNoneItems>false</EnableDefaultNoneItems>
   </PropertyGroup>
 
   <ItemGroup>
     <None Include="..\..\README.md" Pack="true" PackagePath="\" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <PackageReference Include="DemoFile.Game.Cs" Version="0.43.1" />
+    <!-- csda（MIT，见 csda/LICENSE-csda.txt）随包分发；随构建复制到输出目录 csda/<rid>/，运行时就地调用。 -->
+    <None Include="csda\**\*" Pack="true" PackagePath="csda\" CopyToOutputDirectory="PreserveNewest" />
+    <!-- 让包引用方（PackageReference）也能把 csda 复制到自己的输出目录。 -->
+    <None Include="build\Cs2Demo.Analytics.targets" Pack="true" PackagePath="build\Cs2Demo.Analytics.targets" />
   </ItemGroup>
 
   <ItemGroup>

@@ -3,8 +3,10 @@ namespace Cs2Demo.Analytics;
 /// <summary>
 /// 一名玩家单场 Rating30 统计（实验性本地近似，非 HLTV 官方值，见 docs/formulas.md）。
 /// 与 <see cref="PlayerMatchStats"/>（Rating20 那 6 项）完全隔开：调 <c>Calculate30 / CalculateAll30</c> 才返回本类型。
-/// 共 7 项：KPR / ADR / KAST / Surviving / MultiKill / RoundSwing / Rating30。
-/// 算不出来的指标为 null（回合数为 0 时全为 null；缺伤害数据时只有 Adr 为 null，Rating30 会按 ADR=0 继续算）。
+/// 共 9 项：KPR / ADR / eKPR / eADR / KAST / Surviving / MultiKill / RoundSwing / Rating30。
+/// eKPR / eADR / RoundSwing / Rating30 由本库计算（Rating30 用 eKPR / eADR 替代 KPR / ADR）；
+/// MultiKill（多杀回合占比，0~100）由 csda 的连杀回合数派生。
+/// 回合数为 0 时所有指标为 null，否则全部有值。
 /// </summary>
 public sealed class PlayerMatchStats30
 {
@@ -12,31 +14,35 @@ public sealed class PlayerMatchStats30
     public string SteamId { get; set; } = "";
     /// <summary>玩家名。</summary>
     public string Name { get; set; } = "";
-    /// <summary>Rating30 公式版本（如 "1.0.0"），与 <c>StatsCalculator.Rating30Version</c> 一致。</summary>
+    /// <summary>Rating30 公式版本（如 "3.0.0"），与 <c>StatsCalculator.Rating30Version</c> 一致。</summary>
     public string Version { get; set; } = "";
     /// <summary>总回合数。</summary>
     public int Rounds { get; set; }
-    /// <summary>击杀数（不含自杀/队伤）。</summary>
+    /// <summary>击杀数（csda 口径，不含自杀）。</summary>
     public int Kills { get; set; }
     /// <summary>死亡数。</summary>
     public int Deaths { get; set; }
     /// <summary>助攻数。</summary>
     public int Assists { get; set; }
-    /// <summary>总真实伤害。缺伤害数据时为 null。</summary>
+    /// <summary>总伤害（csda 的 HealthDamage，原始扣血、不折叠溢出）。</summary>
     public int? TotalDamage { get; set; }
-    /// <summary>存活回合数。</summary>
+    /// <summary>存活回合数（总回合数 - 死亡数）。</summary>
     public int SurvivedRounds { get; set; }
-    /// <summary>KAST 回合数（有击杀/助攻/补枪/存活的回合，去重）。</summary>
+    /// <summary>KAST 回合数（由 csda 的 KAST% 反推）。</summary>
     public int KastRounds { get; set; }
-    /// <summary>平均每回合击杀。</summary>
+    /// <summary>平均每回合击杀（csda 的 averageKillPerRound）。</summary>
     public double? Kpr { get; set; }
-    /// <summary>平均每回合真实伤害。缺伤害数据时为 null。</summary>
+    /// <summary>平均每回合伤害（csda 的 averageDamagePerRound）。</summary>
     public double? Adr { get; set; }
-    /// <summary>有贡献回合占比（0~1）。</summary>
+    /// <summary>经济加权 eKPR（按对枪胜率难度加权的每回合击杀，本地近似）。Rating30 用它替代 KPR。</summary>
+    public double? EKpr { get; set; }
+    /// <summary>经济加权 eADR（按对枪胜率难度加权的每回合伤害，本地近似）。Rating30 用它替代 ADR。</summary>
+    public double? EAdr { get; set; }
+    /// <summary>有贡献回合占比（0~100，csda 原值）。</summary>
     public double? Kast { get; set; }
-    /// <summary>存活回合占比（0~1）。</summary>
+    /// <summary>存活回合占比（0~100 百分数）。</summary>
     public double? Surviving { get; set; }
-    /// <summary>连杀评分（本地近似，见 docs/formulas.md）。</summary>
+    /// <summary>多杀回合占比（0~100 百分数；单回合 ≥2 杀的回合占全部回合的百分比）。</summary>
     public double? MultiKill { get; set; }
     /// <summary>回合胜率波动（百分点/回合，本地近似，见 docs/formulas.md）。</summary>
     public double? RoundSwing { get; set; }
