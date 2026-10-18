@@ -12,7 +12,7 @@ w 用带轻微 L2 正则（λ=0.02）的非负最小二乘（NNLS）拟合，避
 输入：
   1) docs/rating30-data-template.csv —— 100 行 HLTV 官方 Rating 3.0 目标值。
   2) 特征 CSV —— 本库在 10 张 EPL demo 上跑出的每名玩家特征，列：
-       demo,player,eKpr,eAdr,kastPct,survivingPct,multiKillPct,swingPct,kpr,adr,rounds,k,d,a
+       demo,player,eKpr,eAdr,eSurviving,eKast,eMultiKill,kastPct,survivingPct,multiKillPct,swingPct,kpr,adr,rounds,k,d,a
      生成方式见 docs/formulas.md「Rating30 拟合」小节（临时控制台调
      DemoAnalyzer.ParseFile + StatsCalculator.CalculateAll30）。
 

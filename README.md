@@ -39,5 +39,5 @@ foreach (var s in StatsCalculator.CalculateAll(data))
 - 自杀会被丢掉；BOT 不计入。队杀与 C4 炸死记死亡（不记击杀），与官方记分板一致。
 - 零回合时所有指标为 null；否则全部有值（伤害取 csda 的 `HealthDamage`，原始扣血、不折叠溢出）。
 - `Rating20` / `Rating30` 是社区逆向拟合的近似值，不是 HLTV 官方值；口径见 `docs/formulas.md`。
-- Rating30（实验性本地近似）：`StatsCalculator.Calculate30 / CalculateAll30` → `PlayerMatchStats30`（9 项），用法见 `docs/usage.md`。
-- 返回数据带 `Version` 公式版本（Rating20 当前 `"2.0.0"`，Rating30 当前 `"3.0.0"`）；口径或公式有改动时往上加，靠它判断口径。
+- Rating30（实验性本地近似）：`StatsCalculator.Calculate30 / CalculateAll30` → `PlayerMatchStats30`（6 项评分与诊断字段），用法见 `docs/usage.md`。
+- 返回数据带 `Version` 公式版本（Rating20 当前 `"2.0.0"`，Rating30 当前 `"3.2.0"`）；口径或公式有改动时往上加，靠它判断口径。

@@ -3,8 +3,8 @@ namespace Cs2Demo.Analytics;
 /// <summary>
 /// 一名玩家单场 Rating30 统计（实验性本地近似，非 HLTV 官方值，见 docs/formulas.md）。
 /// 与 <see cref="PlayerMatchStats"/>（Rating20 那 6 项）完全隔开：调 <c>Calculate30 / CalculateAll30</c> 才返回本类型。
-/// 共 9 项：KPR / ADR / eKPR / eADR / KAST / Surviving / MultiKill / RoundSwing / Rating30。
-/// eKPR / eADR / RoundSwing / Rating30 由本库计算（Rating30 用 eKPR / eADR 替代 KPR / ADR）；
+/// 共 12 项：KPR / ADR / eKPR / eADR / eKAST / eSurviving / eMultiKill / KAST / Surviving / MultiKill / RoundSwing / Rating30。
+/// eKPR / eADR / eKAST / eSurviving / eMultiKill / RoundSwing / Rating30 由本库计算（Rating30 用 eKPR / eADR 替代 KPR / ADR）；
 /// MultiKill（多杀回合占比，0~100）由 csda 的连杀回合数派生。
 /// 回合数为 0 时所有指标为 null，否则全部有值。
 /// </summary>
@@ -14,7 +14,7 @@ public sealed class PlayerMatchStats30
     public string SteamId { get; set; } = "";
     /// <summary>玩家名。</summary>
     public string Name { get; set; } = "";
-    /// <summary>Rating30 公式版本（如 "3.0.0"），与 <c>StatsCalculator.Rating30Version</c> 一致。</summary>
+    /// <summary>Rating30 公式版本（如 "3.2.0"），与 <c>StatsCalculator.Rating30Version</c> 一致。</summary>
     public string Version { get; set; } = "";
     /// <summary>总回合数。</summary>
     public int Rounds { get; set; }
@@ -38,6 +38,12 @@ public sealed class PlayerMatchStats30
     public double? EKpr { get; set; }
     /// <summary>经济加权 eADR（按对枪胜率难度加权的每回合伤害，本地近似）。Rating30 用它替代 ADR。</summary>
     public double? EAdr { get; set; }
+    /// <summary>经济/情境加权 eKAST，仅作为 Rating30 内部输入和调试字段。</summary>
+    public double? EKast { get; set; }
+    /// <summary>经济/情境加权存活率，仅作为 Rating30 内部输入和调试字段。</summary>
+    public double? ESurviving { get; set; }
+    /// <summary>经济/情境加权多杀强度，仅作为 Rating30 内部输入和调试字段。</summary>
+    public double? EMultiKill { get; set; }
     /// <summary>有贡献回合占比（0~100，csda 原值）。</summary>
     public double? Kast { get; set; }
     /// <summary>存活回合占比（0~100 百分数）。</summary>

@@ -34,11 +34,11 @@
 - `DemoAnalyzer.ParseFile(path)` → `MatchData`（只解析，不计算；`ParseStream` 已删，csda 只吃本地文件）。
   可用 `DemoAnalyzer.CsdaExecutablePath` 指定自带的 csda。
 - `StatsCalculator.CalculateAll(data) / Calculate(data, steamId)` → V1 6 项
-  KPR / ADR / KAST / Surviving / Impact / Rating2.0；`CalculateAll30 / Calculate30` → Rating30 9 项
-  （KPR / ADR / eKPR / eADR / KAST / Surviving / MultiKill / RoundSwing / Rating30）。只计算，不碰 demo 文件。
-  口径版本 `Rating20Version` = `"2.0.0"`，`Rating30Version` = `"3.0.0"`。
+  KPR / ADR / KAST / Surviving / Impact / Rating2.0；`CalculateAll30 / Calculate30` → Rating30 12 项
+  （KPR / ADR / eKPR / eADR / eKAST / eSurviving / eMultiKill / KAST / Surviving / MultiKill / RoundSwing / Rating30）。只计算，不碰 demo 文件。
+  口径版本 `Rating20Version` = `"2.0.0"`，`Rating30Version` = `"3.2.0"`。
 - 口径来源：KPR / ADR / KAST / Rating2.0 直接取 csda；Surviving / Impact / MultiKill 由 csda 原料派生；
-  eKPR / eADR（经济加权）、RoundSwing、Rating30 由本库计算（Rating30 用 eKPR / eADR 替代 KPR / ADR）。
+  eKPR / eADR（六档装备经济加权）、RoundSwing、Rating30 由本库计算（Rating30 用 eKPR / eADR 替代 KPR / ADR）。
   KAST 单位是 0~100。
 - 口径文档：`docs/formulas.md`（公式 + 与参考仓库的差异），`docs/demo-format.md`（csda→MatchData 映射），
   `docs/csda-integration.md`（csda 参考手册）。

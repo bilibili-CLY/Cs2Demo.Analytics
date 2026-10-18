@@ -67,13 +67,13 @@ public sealed class DocsDemoGoldenTests
         Assert.Equal(17, s.KastRounds);
         Assert.Equal(1.286, s.Kpr);
         Assert.Equal(127.19, s.Adr);
-        Assert.Equal(1.31, s.EKpr);
-        Assert.Equal(126.033, s.EAdr);
+        Assert.Equal(1.413, s.EKpr);
+        Assert.Equal(136.181, s.EAdr);
         Assert.Equal(80.952, s.Kast);
         Assert.Equal(19.048, s.Surviving);
         Assert.Equal(47.619, s.MultiKill);
-        Assert.Equal(2.604, s.RoundSwing);
-        Assert.Equal(1.814, s.Rating30);
+        Assert.Equal(3.119, s.RoundSwing);
+        Assert.Equal(1.829, s.Rating30);
     }
 
     // —— 4129333648_1000003329.dem（de_dust2，22 回合） ——
@@ -127,13 +127,13 @@ public sealed class DocsDemoGoldenTests
         Assert.Equal(17, s.KastRounds);
         Assert.Equal(0.727, s.Kpr);
         Assert.Equal(67.364, s.Adr);
-        Assert.Equal(0.532, s.EKpr);
-        Assert.Equal(52.298, s.EAdr);
+        Assert.Equal(0.663, s.EKpr);
+        Assert.Equal(63.89, s.EAdr);
         Assert.Equal(77.273, s.Kast);
         Assert.Equal(50.0, s.Surviving);
         Assert.Equal(13.636, s.MultiKill);
-        Assert.Equal(3.744, s.RoundSwing);
-        Assert.Equal(1.2, s.Rating30);
+        Assert.Equal(5.587, s.RoundSwing);
+        Assert.Equal(1.306, s.Rating30);
     }
 
     // 从测试输出目录往上找仓库根（含 Cs2Demo.Analytics.slnx），再拼 docs/demo/<文件名>。

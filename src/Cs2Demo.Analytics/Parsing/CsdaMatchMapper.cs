@@ -18,7 +18,15 @@ internal static class CsdaMatchMapper
         var match = JsonSerializer.Deserialize<CsdaMatch>(json, Options)
             ?? throw new InvalidOperationException("csda 输出为空，无法解析。");
 
-        var data = new MatchData { Meta = new MatchMeta { MapName = match.MapName ?? "" } };
+        var data = new MatchData
+        {
+            Meta = new MatchMeta
+            {
+                MapName = match.MapName ?? "",
+                TickRate = match.Tickrate,
+                MaxRounds = match.MaxRounds,
+            },
+        };
 
         // (回合, 玩家) → 经济记录，用于给击杀/存活补上装备值。
         var economy = new Dictionary<(int Round, ulong SteamId), CsdaPlayerEconomy>();

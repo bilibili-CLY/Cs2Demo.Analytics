@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -7,7 +7,7 @@
     <AssemblyName>Cs2Demo.Analytics</AssemblyName>
     <RootNamespace>Cs2Demo.Analytics</RootNamespace>
     <!-- push 到 nuget.org 前必须和用户确认版本号；此处的 Version 改动视为打包配置变更，需谨慎。 -->
-    <Version>0.3.0</Version>
+    <Version>0.4.0</Version>
     <PackageId>Cs2Demo.Analytics</PackageId>
     <Title>Cs2Demo.Analytics</Title>
     <Authors>Cs2Demo.Analytics</Authors>

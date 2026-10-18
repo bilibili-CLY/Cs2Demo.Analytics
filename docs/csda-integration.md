@@ -11,7 +11,7 @@
 > 与 `src/Cs2Demo.Analytics/Stats/{StatsCalculator,SwingCalculator}.cs`。实测细节（过滤对账、`-output` 目录要求、
 > 整数阵营编码等）记录在 `docs/demo-format.md`。
 >
-> **0.3.0 起**：为支持 Rating30 的经济加权与 Swing v2，本库还会消费 csda 的**经济 / 下包 / 残局**数据
+> **0.3.0 起**：为支持 Rating30 的经济加权与 Swing v3，本库还会消费 csda 的**经济 / 下包 / 残局 / tickrate** 数据
 > （`rounds` 的 `teamA*/teamB*` 装备与经济类型、`playerEconomies`、`bombsPlanted/bombsDefused`、`clutches`，
 > 以及击杀/伤害里的 `weaponType` / `isAssistedFlash` / `victimArmor` 等），映射见 `docs/demo-format.md`。
 

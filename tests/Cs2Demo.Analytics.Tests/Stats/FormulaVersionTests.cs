@@ -30,7 +30,7 @@ public sealed class FormulaVersionTests
 
         var stats = StatsCalculator.Calculate30(data, "1");
 
-        Assert.Equal("3.0.0", stats.Version);
+        Assert.Equal("3.2.0", stats.Version);
         Assert.Equal(StatsCalculator.Rating30Version, stats.Version);
     }
 }

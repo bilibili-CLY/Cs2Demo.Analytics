@@ -5,17 +5,22 @@ using System.Linq;
 namespace Cs2Demo.Analytics;
 
 /// <summary>
-/// Rating30 的 Round Swing v2（本地近似）：经济 + 安包加权的回合胜率变化 + 击杀贡献分摊 +
+/// Rating30 的 Round Swing v3（本地近似）：经济 + 安包加权的回合胜率变化 + 击杀贡献分摊 +
 /// 回合末残值零和分摊。返回每名玩家的 swing（自己队伍视角的胜率小数之和）。详见 docs/formulas.md。
 /// </summary>
 internal static class SwingCalculator
 {
     // 回合胜率函数系数：存活数系数锚定 1.0、偏置 -0.05（保持 5v5≈48.8%、5v4≈72.1% 公开示例），
-    // 经济 / 安包系数由 11 张 EPL demo 逻辑回归拟合（见 docs/formulas.md）。
+    // 经济 / 安包系数沿用公开锚点；地图样本不足时按 2026 规则回退全局模型。
     internal const double BaseOffset = -0.05;
     internal const double AliveCoef = 1.0;
     internal const double EcoCoef = 0.0689;
     internal const double BombCoef = 0.8672;
+
+    // 现有训练集每张地图仅 20~61 个回合，低于可可靠估计地图先验的阈值，故暂时全部回退全局。
+    // 未来补充足够语料后只需填入 log-odds 偏移；未知地图也自然返回全局模型。
+    private static readonly IReadOnlyDictionary<string, double> MapOffsets =
+        new Dictionary<string, double>(StringComparer.OrdinalIgnoreCase);
 
     // 单次击杀 swing 的贡献分摊权重（其余归击杀者）。
     private const double KillerShare = 0.60;
@@ -23,10 +28,15 @@ internal static class SwingCalculator
     private const double FlashShare = 0.10;
     private const double TradeShare = 0.05;
 
-    /// <summary>T 方回合胜率：存活差 + 经济差 + 安包。</summary>
+    /// <summary>T 方回合胜率：地图 + 存活差 + 经济差 + 安包。</summary>
     internal static double RoundWinProb(int tAlive, int ctAlive, int evT, int evCT, bool bombPlanted)
+        => RoundWinProb("", tAlive, ctAlive, evT, evCT, bombPlanted);
+
+    internal static double RoundWinProb(string mapName, int tAlive, int ctAlive, int evT, int evCT, bool bombPlanted)
     {
+        var mapOffset = MapOffsets.TryGetValue(mapName ?? "", out var offset) ? offset : 0.0;
         var z = BaseOffset
+            + mapOffset
             + AliveCoef * (tAlive - ctAlive)
             + EcoCoef * (evT - evCT) / 1000.0
             + (bombPlanted ? BombCoef : 0.0);
@@ -73,8 +83,9 @@ internal static class SwingCalculator
             var plantTick = round?.BombPlantedTick ?? 0;
 
             var kills = group.OrderBy(k => k.Tick).ToList();
-            var tAlive = 5;
-            var ctAlive = 5;
+            var initialRoster = rosterByRound.TryGetValue(roundNumber, out var roundRoster) ? roundRoster : null;
+            var tAlive = initialRoster?.Count(s => s.Side == Sides.Terrorist) ?? 5;
+            var ctAlive = initialRoster?.Count(s => s.Side == Sides.CounterTerrorist) ?? 5;
             var wpaByPlayer = new Dictionary<string, double>();
 
             foreach (var k in kills)
@@ -93,12 +104,17 @@ internal static class SwingCalculator
                     continue;
 
                 var bomb = plantTick > 0 && k.Tick >= plantTick;
-                var before = RoundWinProb(tAlive, ctAlive, evT, evCT, bomb);
+                var before = RoundWinProb(data.Meta.MapName, tAlive, ctAlive, evT, evCT, bomb);
                 if (victimSide == Sides.Terrorist)
                     tAlive = Math.Max(0, tAlive - 1);
                 else
                     ctAlive = Math.Max(0, ctAlive - 1);
-                var after = RoundWinProb(tAlive, ctAlive, evT, evCT, bomb);
+                var after = RoundWinProb(data.Meta.MapName, tAlive, ctAlive, evT, evCT, bomb);
+
+                // 2026-10 规则：炸弹已进入不可逆阶段后，击杀不再产生 Round Swing。
+                // 当前 MatchData 没有逐玩家拆包器/拆包 kit 状态，因此采用无 kit 的 10 秒保守阈值。
+                if (IsBombIrreversible(round, k.Tick, data.Meta.TickRate))
+                    continue;
 
                 // 队伤/世界击杀（无击杀者）改存活数但不计 swing（也不破坏零和）。
                 if (k.AttackerSteamId.Length == 0)
@@ -109,7 +125,8 @@ internal static class SwingCalculator
                 if (gain <= 0)
                     continue;
 
-                DistributeKill(k, gain, damageByRoundVictim, kills, total, wpaByPlayer);
+                DistributeKill(k, gain, damageByRoundVictim, kills, total, wpaByPlayer,
+                    data.Meta.TickRate, plantTick > 0, plantTick > 0 && k.Tick >= plantTick);
                 if (total.ContainsKey(k.VictimSteamId))
                     total[k.VictimSteamId] -= gain; // 受害者承担等量负值
             }
@@ -118,14 +135,15 @@ internal static class SwingCalculator
             var winner = round?.WinnerSide ?? Sides.Unknown;
             if (round is null || (winner != Sides.Terrorist && winner != Sides.CounterTerrorist))
                 continue;
-            if (!rosterByRound.TryGetValue(roundNumber, out var roster))
+            if (!rosterByRound.TryGetValue(roundNumber, out var endRoster))
                 continue;
 
-            var pEnd = RoundWinProb(tAlive, ctAlive, evT, evCT, plantTick > 0);
+            var pEnd = RoundWinProb(data.Meta.MapName, tAlive, ctAlive, evT, evCT, plantTick > 0);
             var truth = winner == Sides.Terrorist ? 1.0 : 0.0;
             var residual = truth - pEnd;
             if (Math.Abs(residual) >= 1e-12)
-                DistributeResidual(roster, residual, wpaByPlayer, kills, clutchersByRound, round, total);
+                DistributeResidual(endRoster, residual, wpaByPlayer, kills, clutchersByRound, round,
+                    data.Meta.TickRate, total);
         }
 
         return total;
@@ -138,7 +156,10 @@ internal static class SwingCalculator
         Dictionary<(int Round, string Victim), List<DamageEvent>> damageByRoundVictim,
         List<KillEvent> kills,
         Dictionary<string, double> total,
-        Dictionary<string, double> wpaByPlayer)
+        Dictionary<string, double> wpaByPlayer,
+        int tickRate,
+        bool bombPlanted,
+        bool postPlant)
     {
         var attacker = kill.AttackerSteamId;
         var team = kill.AttackerSide;
@@ -171,24 +192,51 @@ internal static class SwingCalculator
             assigned += FlashShare;
         }
 
-        // 补枪：被补掉的那名（最近的队友阵亡者）分 0.05。
-        if (kill.IsTradeKill)
+        // 补枪：被 5 秒内补掉的那名队友（HLTV 的 trade 窗口）分 0.05。
+        // 不依赖 csda 的 isTradeKill，自己按 tick 判定，避免把很久以前的队友死亡算成补枪。
+        var partner = FindTradePartner(kill, kills, tickRate);
+        if (partner.Length > 0 && partner != attacker)
         {
-            var partner = kills
-                .Where(x => x.Tick < kill.Tick && x.VictimSide == team && x.VictimSteamId.Length > 0)
-                .OrderByDescending(x => x.Tick)
-                .Select(x => x.VictimSteamId)
-                .FirstOrDefault();
-            if (!string.IsNullOrEmpty(partner) && partner != attacker)
-            {
-                Add(total, partner, gain * TradeShare);
-                assigned += TradeShare;
-            }
+            Add(total, partner, gain * TradeShare);
+            assigned += TradeShare;
         }
 
         // 剩余（≥0.60）归击杀者。
         Add(total, attacker, gain * (1.0 - assigned));
-        wpaByPlayer[attacker] = (wpaByPlayer.TryGetValue(attacker, out var wpa) ? wpa : 0.0) + gain;
+        // 2026-10 规则：安包回合的回合末残值，只把安包后的击杀视为 WPA 贡献。
+        if (!bombPlanted || postPlant)
+            wpaByPlayer[attacker] = (wpaByPlayer.TryGetValue(attacker, out var wpa) ? wpa : 0.0) + gain;
+    }
+
+    /// <summary>
+    /// 找补枪搭档：本次击杀的受害者，是否在 5 秒内先杀了击杀者的队友。
+    /// 返回那名被杀的队友（拿补枪份额），找不到返回空串。窗口按 tickRate 换算，缺省 64 tick。
+    /// </summary>
+    internal static string FindTradePartner(KillEvent kill, IReadOnlyList<KillEvent> kills, int tickRate)
+    {
+        var rate = tickRate > 0 ? tickRate : 64;
+        var window = 5 * rate;
+        return kills
+            .Where(x => x.Tick < kill.Tick
+                && x.Tick >= kill.Tick - window
+                && x.AttackerSteamId.Length > 0
+                && x.AttackerSteamId == kill.VictimSteamId
+                && x.VictimSide == kill.AttackerSide
+                && x.VictimSteamId.Length > 0
+                && x.VictimSteamId != kill.AttackerSteamId)
+            .OrderByDescending(x => x.Tick)
+            .Select(x => x.VictimSteamId)
+            .FirstOrDefault() ?? "";
+    }
+
+    private static bool IsBombIrreversible(RoundInfo? round, int killTick, int tickRate)
+    {
+        if (round is null || round.BombPlantedTick <= 0)
+            return false;
+
+        var rate = tickRate > 0 ? tickRate : 64;
+        // CS2 炸弹标准爆炸时间为 40 秒；没有 kit 状态时，剩余不足 10 秒视为不可逆。
+        return killTick >= round.BombPlantedTick + 30 * rate;
     }
 
     /// <summary>
@@ -202,11 +250,14 @@ internal static class SwingCalculator
         List<KillEvent> kills,
         Dictionary<int, HashSet<string>> clutchersByRound,
         RoundInfo round,
+        int tickRate,
         Dictionary<string, double> total)
     {
         var clutchers = clutchersByRound.TryGetValue(round.RoundNumber, out var set) ? set : new HashSet<string>();
-        var tradeKillers = kills.Where(k => k.IsTradeKill && k.AttackerSteamId.Length > 0)
-            .Select(k => k.AttackerSteamId).ToHashSet();
+        var tradeKillers = kills
+            .Where(k => k.AttackerSteamId.Length > 0 && FindTradePartner(k, kills, tickRate).Length > 0)
+            .Select(k => k.AttackerSteamId)
+            .ToHashSet();
 
         foreach (var side in new[] { Sides.Terrorist, Sides.CounterTerrorist })
         {

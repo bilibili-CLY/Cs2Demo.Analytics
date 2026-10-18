@@ -100,7 +100,7 @@ Console.WriteLine($"杀={me.Kills} 死={me.Deaths} 助攻={me.Assists} 总伤={m
 
 `Rating20` 是 csda 的逆向拟合近似值，不是 HLTV 官方值；公式见 `docs/formulas.md`。
 
-## 第二步（Rating30）：算 9 项指标 → PlayerMatchStats30
+## 第二步（Rating30）：算 Rating30 及其子项 → PlayerMatchStats30
 
 ```csharp
 // 与 V1 完全隔开：独立方法、独立返回类型，互不影响
@@ -121,11 +121,12 @@ Console.WriteLine($"Rating30={one.Rating30}, 版本={one.Version}");
 
 | 字段 | 类型 | 说明 |
 |---|---|---|
-| `EKpr` / `EAdr` | `double?` | 经济加权的 KPR / ADR：按对枪胜率难度给每次击杀 / 伤害加权（eco 里打赢、劣势对枪更值钱）。`Rating30` 用它俩替代 `Kpr` / `Adr` |
+| `EKpr` / `EAdr` | `double?` | 经济加权的 KPR / ADR：按六档装备的对枪胜率难度给每次击杀 / 伤害加权（eco 里打赢、劣势对枪更值钱）。`Rating30` 用它俩替代 `Kpr` / `Adr` |
+| `EKast` / `ESurviving` / `EMultiKill` | `double?` | 经济/情境加权诊断值；3.2 暂不直接进入最终合成，供后续模型迭代 |
 | `MultiKill` | `double?` | 多杀回合占比（单回合 ≥2 杀的回合数 / 总回合数 × 100，0~100 百分数，数据取自 csda 连杀回合数） |
-| `RoundSwing` | `double?` | 回合胜率波动（百分点/回合）。v2 起按「经济 + 是否下包 + 存活人数」算胜率变化，并做击杀贡献分摊与回合末残值零和分配 |
-| `Rating30` | `double?` | Rating 3.0 本地近似。零回合时 9 项全 null |
-| `Version` | `string` | 公式版本，当前 `"3.0.0"`，与 `StatsCalculator.Rating30Version` 一致 |
+| `RoundSwing` | `double?` | 回合胜率波动（百分点/回合）。v3 按经济、存活人数和安包终局规则计算，并做击杀贡献分摊与回合末残值零和分配 |
+| `Rating30` | `double?` | Rating 3.0 本地近似。零回合时 Rating30 字段全为 null |
+| `Version` | `string` | 公式版本，当前 `"3.2.0"`，与 `StatsCalculator.Rating30Version` 一致 |
 
 Rating30 是实验性本地近似，不是 HLTV 官方值（官方从未公开精确公式）；
 结构对齐官方公开的 Rating 3.0（6 个子项 + 经济加权 + Round Swing），系数由 10 张 EPL demo 拟合，
@@ -134,12 +135,18 @@ Rating30 是实验性本地近似，不是 HLTV 官方值（官方从未公开�
 ## 版本与口径
 
 - `Version` 字段就是用来判断口径的：以后公式优化，版本号往上加
-  （比如 Rating30 优化后变成 `"3.1.0"`），调用方存结果时把 `Version` 一起存，
+  （比如 Rating30 优化后变成 `"3.2.0"`），调用方存结果时把 `Version` 一起存，
   就知道这行数是哪个公式算的。
 - 对方项目更新包后，原来调 `Calculate` 的代码不用改（只加了字段，没改签名）；
   要用 Rating30 就调 `Calculate30` 那一套。
 - **0.3.0：解析后端与 V1 口径变化**：ADR / KAST 改由 csda 计算（KAST 单位从 0~1 变成 0~100），
   Rating20 `Version` 升到 `"2.0.0"`。旧版结果与新版本不可直接比较。
-- **0.3.0：Rating30 升级为经济加权版**：新增 `EKpr` / `EAdr`（Rating30 用它俩替代 KPR / ADR），
-  `RoundSwing` 改为经济 + 安包 + 贡献分摊的 v2，`Rating30` 用 10 张 EPL demo 重拟权重。
-  Rating30 `Version` 升到 `"3.0.0"`，数值与旧的 `"2.0.0"` 不可直接比较；Rating20 仍是 `"2.0.0"` 不变。
+- **3.1.0：Rating30 按 2026-10 公开规则更新**：Round Swing 使用实际回合人数、tickrate 和炸弹不可逆终局规则，
+  增加 `EKast` / `ESurviving` / `EMultiKill` 诊断字段，并用现有 100 条单图样本重新拟合六项权重。
+  Rating30 `Version` 升到 `"3.1.0"`，数值与旧的 `"3.0.0"` 不可直接比较；Rating20 仍是 `"2.0.0"` 不变。
+- **3.2.0：Rating30 经济口径改为六档装备**：eKPR/eADR 的对枪胜率从连续装备价差改成 HLTV 公开的
+  six-tier（初始手枪/升级手枪/SMG/二线步枪/一线步枪/狙击枪），AWP 打步枪回到公开的 56%~60% 区间；
+  补枪份额改为自算 5 秒窗口（不再依赖 csda 的 `isTradeKill`）；eKPR/eADR 的归一化均值随新特征重算。
+  Rating30 `Version` 升到 `"3.2.0"`，数值与 `"3.1.0"` 不可直接比较。
+- **0.4.0：包版本发布**：包含 Rating30 `"3.2.0"`（六档装备 + 5 秒补枪窗口）。
+  包版本和公式版本是两套编号，升级包不一定改公式；以返回数据的 `Version` 为准。

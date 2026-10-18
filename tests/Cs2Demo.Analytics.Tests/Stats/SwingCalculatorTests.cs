@@ -3,7 +3,7 @@ using Cs2Demo.Analytics;
 namespace Cs2Demo.Analytics.Tests;
 
 /// <summary>
-/// Round Swing v2（经济/安包加权 + 贡献分摊 + 回合末残值零和分摊）单元测试。
+/// Round Swing v3（经济/安包加权 + 贡献分摊 + 终局规则 + 回合末残值零和分摊）单元测试。
 /// 场景：1 回合，T1 击杀 C1，T 方获胜。详见 docs/formulas.md。
 /// </summary>
 public sealed class SwingCalculatorTests

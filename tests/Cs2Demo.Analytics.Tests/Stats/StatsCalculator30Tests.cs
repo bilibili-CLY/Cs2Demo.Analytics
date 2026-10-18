@@ -70,7 +70,7 @@ public sealed class StatsCalculator30Tests
         Assert.Equal(50.0, s.Surviving);      // (4 - 2) / 4 * 100，0~100 百分数
         Assert.Equal(0.0, s.MultiKill);       // 无多杀回合（每人每回合只杀 1 个）
         Assert.Equal(23.361, s.RoundSwing!.Value, 3); // 每杀 +0.2336 胜率/回合
-        Assert.Equal(1.737, s.Rating30!.Value, 3);
+        Assert.Equal(1.654, s.Rating30!.Value, 3);
     }
 
     [Fact]

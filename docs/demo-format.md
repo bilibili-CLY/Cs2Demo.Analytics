@@ -53,6 +53,7 @@ Rating30 的经济加权与 Swing v2 需要这些字段，`CsdaMatchMapper` 已�
 | `playerEconomies`，加入对枪双方装等 | `KillEvent.KillerEquipmentValue / VictimEquipmentValue` | 击杀者/被击杀者本回合开局装备价值 |
 | `damages[].victimArmor` | `DamageEvent.VictimArmor` | 命中时对方护甲 |
 | `clutches[]` | `MatchData.Clutches`（`ClutchInfo`） | 残局：`opponentCount / side / hasWon / clutcherSteamId / clutcherSurvived` |
+| `tickrate / maxRounds` | `MatchMeta.TickRate / MaxRounds` | 用于炸弹不可逆阶段判断与加时赛识别；缺失时为 0 |
 
 `playerEconomies` 覆盖到每回合每人（golden demo 为 10 人 × 18 回合 = 180 条），是存活表和经济加权的共同数据源。
 

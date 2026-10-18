@@ -11,6 +11,8 @@ public sealed class CsdaMatchMapperTests
     private const string Json = """
     {
       "mapName": "de_test",
+      "tickrate": 64,
+      "maxRounds": 24,
       "players": {
         "76561199771616955": { "steamId": 76561199771616955, "name": "A", "killCount": 2, "deathCount": 0, "assistCount": 1,
           "kast": 50.0, "healthDamage": 150, "armorDamage": 10, "averageKillPerRound": 1.0, "averageDeathPerRound": 0.5,
@@ -69,6 +71,8 @@ public sealed class CsdaMatchMapperTests
         var data = Map();
 
         Assert.Equal("de_test", data.Meta.MapName);
+        Assert.Equal(64, data.Meta.TickRate);
+        Assert.Equal(24, data.Meta.MaxRounds);
         Assert.Equal(3, data.Players.Count);
 
         var a = data.Players.Single(p => p.SteamId == "76561199771616955");

@@ -9,13 +9,27 @@ namespace Cs2Demo.Analytics.Tests;
 public sealed class EcoModelTests
 {
     [Theory]
-    [InlineData(0, 0, false, 0.48)]     // 同装备、CT：约 48%
-    [InlineData(0, 0, true, 0.457)]     // 同装备、T：略低
-    [InlineData(2700, 400, false, 0.75)] // 一线步枪(2700) 打初始手枪(400)、CT：约 75%
-    public void DuelWinProb_MatchesHltvAnchors(int own, int foe, bool ownIsT, double expected)
+    [InlineData(0, 0, false, "", "", 0.48)]              // 同档、CT：约 48%
+    [InlineData(0, 0, true, "", "", 0.457)]              // 同档、T：约 45.7%
+    [InlineData(2700, 400, false, "AK-47", "Glock-18", 0.75)] // 一线步枪打初始手枪：约 75%
+    [InlineData(4750, 2700, true, "AWP", "AK-47", 0.569)]     // AWP 打步枪、T：约 57%
+    [InlineData(4750, 2700, false, "AWP", "AK-47", 0.591)]    // AWP 打步枪、CT：约 59%
+    public void DuelWinProb_MatchesHltvAnchors(
+        int own, int foe, bool ownIsT, string ownWeapon, string foeWeapon, double expected)
     {
-        var p = StatsCalculator.DuelWinProb(own, foe, ownIsT);
+        var p = StatsCalculator.DuelWinProb(own, foe, ownIsT, ownWeapon, foeWeapon);
         Assert.Equal(expected, StatsCalculator.Round3(p), 3);
+    }
+
+    [Fact]
+    public void TierForWeapon_FallsBackWhenUnknown()
+    {
+        Assert.Equal(StatsCalculator.DuelTier.TierOneRifle, StatsCalculator.TierForWeapon("AK-47"));
+        Assert.Equal(StatsCalculator.DuelTier.Sniper, StatsCalculator.TierForWeapon("AWP"));
+        Assert.Equal(StatsCalculator.DuelTier.TierTwoRifle, StatsCalculator.TierForWeapon("Galil AR"));
+        Assert.Null(StatsCalculator.TierForWeapon("Knife"));
+        // 武器未知时按装备价值回退；2700 在装备口径下是二线步枪（买不起 AWP/一线枪的满甲）。
+        Assert.Equal(StatsCalculator.DuelTier.TierTwoRifle, StatsCalculator.TierForEquipment(2700));
     }
 
     [Fact]
