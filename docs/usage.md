@@ -11,7 +11,7 @@
 **A. NuGet 包引用（干净版）**：对方项目 `.csproj` 加：
 
 ```xml
-<PackageReference Include="Cs2Demo.Analytics" Version="0.3.0" />
+<PackageReference Include="Cs2Demo.Analytics" Version="0.4.0" />
 ```
 
 包内已带 csda 二进制，无需另装依赖（旧版要引的 `DemoFile.Game.Cs` 已不再需要）。
