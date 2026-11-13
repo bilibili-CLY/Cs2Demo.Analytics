@@ -11,7 +11,7 @@
 **A. NuGet 包引用（干净版）**：对方项目 `.csproj` 加：
 
 ```xml
-<PackageReference Include="Cs2Demo.Analytics" Version="0.4.0" />
+<PackageReference Include="Cs2Demo.Analytics" Version="0.4.1" />
 ```
 
 包内已带 csda 二进制，无需另装依赖（旧版要引的 `DemoFile.Game.Cs` 已不再需要）。
@@ -150,3 +150,6 @@ Rating30 是实验性本地近似，不是 HLTV 官方值（官方从未公开�
   Rating30 `Version` 升到 `"3.2.0"`，数值与 `"3.1.0"` 不可直接比较。
 - **0.4.0：包版本发布**：包含 Rating30 `"3.2.0"`（六档装备 + 5 秒补枪窗口）。
   包版本和公式版本是两套编号，升级包不一定改公式；以返回数据的 `Version` 为准。
+- **0.4.1：解析器升级，数字不变**：随包 csda 从 v1.11.0 升到 v1.14.1，并打补丁维持现有 ADR 口径
+  （上游 v1.12.0 起改成「实际掉血」，会让 ADR/eADR/Rating30 漂移）。golden demo 上 10 名玩家的全部指标
+  与 518 条伤害逐字段零差异，公式版本仍是 `"2.0.0"` / `"3.2.0"`，调用方无需改代码。

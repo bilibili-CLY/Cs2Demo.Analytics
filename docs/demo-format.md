@@ -10,9 +10,13 @@
 csda -demo-path=<demo> -output=<临时目录> -format=json -minify
 ```
 
-- `-output` 必须是**已存在的目录**（传文件路径会报错）；输出文件为 `<demo 文件名>.json`。
+- `-output` 传**已存在的目录**（本库固定这么用）；传**已存在的文件**也能写进去，
+  传**不存在的路径**才会报 `invalid output provided`。输出文件名 = `<demo 文件名>.json`。详见 `docs/csda-integration.md` §3.1。
+- 随包二进制是 csda **v1.14.1 + ADR 口径补丁**（0.4.1 起；补丁与对账见 `docs/csda-integration.md` §9.1）。
 - 退出码 0 成功 / 1 分析失败 / 2 参数错误。
-- 失败且 stderr 含 `ErrUnexpectedEndOfDemo` → 本库抛 `InvalidOperationException`（demo 损坏/截断）。
+- ⚠️ **csda 对截断 demo 是容忍的**：照样 exit 0、照样出 JSON，只是回合/击杀数残缺（✅实测见
+  `docs/csda-integration.md` §3.2）。所以本库那条「stderr 含 `ErrUnexpectedEndOfDemo` → 抛损坏异常」
+  基本不会触发，残缺数据不会被自动拦下。
 - 超时 10 分钟；进程启动失败（找不到/无执行权限）也包成 `InvalidOperationException`。
 
 ## 二进制定位（`CsdaBinaryLocator`）
@@ -44,7 +48,7 @@ Rating30 的经济加权与 Swing v2 需要这些字段，`CsdaMatchMapper` 已�
 | csda 字段 | 本库字段 | 说明 |
 |---|---|---|
 | `rounds[].teamAEquipmentValue / teamBEquipmentValue` | `RoundInfo.TEquipmentValue / CTEquipmentValue` | 队伍**开局总**装备价值（5 人求和，如 4250）；按 `teamASide/teamBSide` 判断哪队是 T |
-| `rounds[].teamAEconomyType / teamBEconomyType` | `RoundInfo.TEconomyType / CTEconomyType` | `pistol` / `eco` / `full` |
+| `rounds[].teamAEconomyType / teamBEconomyType` | `RoundInfo.TEconomyType / CTEconomyType` | `pistol` / `eco` / `semi` / `force-buy` / `full`（五档，✅golden 全出现）；仅原样带出，不参与计算 |
 | `rounds[].teamAMoneySpent / teamBmoneySpent` | （未入模型） | 注意键名大小写怪癖：`teamBmoneySpent`（小写 m） |
 | `bombsPlanted[]` | `RoundInfo.BombPlantedTick` | 按回合取第一次下包的 tick（0 表示没下包） |
 | `bombsDefused[]` | `RoundInfo.DefuserSteamId` | 拆包者 |
@@ -77,12 +81,20 @@ csda 没有逐回合存活表，本库用 `playerEconomies` + 死亡名单反推
 
 - 阵营映射：`2 → "T"`、`3 → "CT"`、其他 `""`（未知）。
 - 武器归一化（`WeaponNames`）：csda 显示名反查回规范名；未知非空名字记 `UNKNOWN`。
-  武器名 / 类型目前不参与计算（经济加权的难度只看装备价值），记下来是为以后免 breaking change；
+  **3.2.0 起武器名参与计算**：`StatsCalculator.TierForWeapon` 用击杀武器名定六档装备，
+  只有拿不到武器才回退到装备价值档位（`TierForEquipment`）——未列入六档的名字
+  （刀、投掷物、C4、`World`、机枪 M249/Negev、Zeus x27、`UNKNOWN`）都走回退。
+  `weaponType` 与 `EconomyType` 仍只原样带出、不参与计算；
   击杀的 `IsAssistedFlash` 已用于 RoundSwing 的贡献分摊。
 
 ## 异常与兜底
 
-- demo 损坏/截断、超时、找不到 csda、csda 退出码非 0：抛 `InvalidOperationException`
+- 超时、找不到 csda、csda 退出码非 0：抛 `InvalidOperationException`
   （消息带原因；找不到二进制时提示用 `DemoAnalyzer.CsdaExecutablePath`）。
+- ⚠️ **demo 损坏/截断不会抛异常**：✅实测 csda 对截断 demo 照样 exit 0、照样出 JSON，只是回合/击杀残缺
+  （stderr 为空，`ErrUnexpectedEndOfDemo` 分支基本不会触发）。残缺数据**不会被本库拦下**，
+  属已知风险，细节见 `docs/csda-integration.md` §3.2。
+- 来源无法自动识别、且调用方没传 `-source` 时，csda 会直接失败（本库不传 `-source`，见 §3.2）；
+  这类失败会走上面的「退出码非 0」分支。
 - 解析后玩家数为 0 或有效回合数为 0：抛 `InvalidOperationException`。
 - `Meta.MapName` 取 csda 的 `mapName`；`Meta.FileSha256` 由 `ParseFile` 本地计算。

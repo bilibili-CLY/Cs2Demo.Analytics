@@ -28,6 +28,10 @@
   （`src/Cs2Demo.Analytics/csda/<rid>/csda[.exe]`，约 56MB，**进 git**）；`build/Cs2Demo.Analytics.targets`
   会把它复制到调用方输出目录 `csda/<rid>/`。因此包体积约 58MB，只支持 win-x64 / osx-x64 / osx-arm64 /
   linux-x64 / linux-arm64。上游许可证见 `csda/LICENSE-csda.txt`。
+  随包二进制是 csda **v1.14.1 + 本库的 ADR 口径补丁**（0.4.1 起，自行构建，**不是官方 Release 原样二进制**）。
+  上游 v1.12.0 起把伤害改成「实际掉血」，会改掉 ADR/eADR/Rating30；补丁维持 HLTV 口径，golden 逐字段零差异。
+  补丁内容、对账结果与复现构建步骤见 `docs/csda-integration.md` §9.1——**升级 csda 必须照做，别直接换官方二进制**。
+  本库**不传 `-source`**，来源无法自动识别的 demo 会在解析阶段直接失败（`docs/csda-integration.md` §3.2）。
 
 ## 入口点与项目边界
 

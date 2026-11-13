@@ -7,12 +7,12 @@ CS2 demo 解析与玩家数据计算的 .NET 库（`net8.0`，net8/9/10 的项�
 ## 安装
 
 ```bash
-dotnet add package Cs2Demo.Analytics --version 0.4.0
+dotnet add package Cs2Demo.Analytics --version 0.4.1
 ```
 
 ## 平台支持
 
-包内附带 csda 预编译二进制（macOS arm64/x64、Linux x64/arm64、Windows x64），
+包内附带 csda 二进制（v1.14.1 + 维持 HLTV ADR 口径的补丁，自行构建；macOS arm64/x64、Linux x64/arm64、Windows x64），
 引用后会自动复制到输出目录 `csda/<rid>/csda[.exe]`，运行时就地调用。
 若要用自备 csda（或非常规部署），设 `DemoAnalyzer.CsdaExecutablePath` 指向可执行文件即可。
 csda 的许可证见包内 `csda/LICENSE-csda.txt`（MIT, Copyright (c) 2023-present AkiVer）。

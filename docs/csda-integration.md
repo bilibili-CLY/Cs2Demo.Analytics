@@ -14,6 +14,9 @@
 > **0.3.0 起**：为支持 Rating30 的经济加权与 Swing v3，本库还会消费 csda 的**经济 / 下包 / 残局 / tickrate** 数据
 > （`rounds` 的 `teamA*/teamB*` 装备与经济类型、`playerEconomies`、`bombsPlanted/bombsDefused`、`clutches`，
 > 以及击杀/伤害里的 `weaponType` / `isAssistedFlash` / `victimArmor` 等），映射见 `docs/demo-format.md`。
+>
+> **0.4.1 起**：随包二进制是 **v1.14.1 + 本库的 ADR 口径补丁**（不是官方 Release 的原样二进制）。
+> 补丁内容、为什么必须打、以及怎么复现构建，见 §9.1。
 
 ---
 
@@ -45,7 +48,7 @@
 
 ### 2.2 npm 包（备选）
 
-`npm` 包 **`@akiver/cs-demo-analyzer`**（当前 `1.11.0`）自带二进制，路径为
+`npm` 包 **`@akiver/cs-demo-analyzer`**（当前 `1.14.1`）自带二进制，路径为
 `node_modules/@akiver/cs-demo-analyzer/bin/<platform>/csda`（Windows 为 `csda.exe`）。
 该包的 TS 封装（`js/src/index.ts`）本质就是用 `child_process` 去 spawn 这个二进制 —— 说明它就是一个纯 CLI，没有原生库依赖。
 
@@ -66,7 +69,7 @@ csda -demo-path=<demo文件> -output=<目录或文件> [-format=csv|json|csdm] [
 | 参数 | 必填 | 说明 |
 |---|---|---|
 | `-demo-path` | 是 | `.dem` 文件路径 |
-| `-output` | 是 | 输出位置。`csv` **必须是目录**；`json`/`csdm` 文档说可给文件或目录，但**本仓库实测 v1.11.0 给文件路径会报 `invalid output provided`（exit 1），给已存在的目录才正常**，故统一用目录 |
+| `-output` | 是 | 输出位置。`csv` **必须是目录**；`json`/`csdm` 给**已存在的目录**或**已存在的文件**都行，给**不存在的路径**会报 `invalid output provided`（exit 1）。本库统一用目录（v1.14.1 ✅实测） |
 | `-format` | 否 | `csv`（默认）/ `json` / `csdm` |
 | `-source` | 否 | 数据来源：`valve` / `faceit` / `esea` / `esl` / `esportal` / `ebot` / `5eplay` / `perfectworld` / `popflash` / `fastcup` / `challengermode` |
 | `-positions` | 否 | 额外输出逐 tick 玩家位置（体积很大，非必要别开） |
@@ -74,7 +77,8 @@ csda -demo-path=<demo文件> -output=<目录或文件> [-format=csv|json|csdm] [
 
 ### 3.1 输出位置规则
 
-- `-format=json`：`-output` 给目录时写入 `<demo文件名>.json`（本库就这么用）；文档说也可给 `*.json` 文件路径，但 v1.11.0 实测会报错，别用文件路径。默认缩进，`-minify` 变紧凑。
+- `-format=json`：`-output` 给目录时写入 `<demo文件名>.json`（本库就这么用）；给**已存在的**文件路径也能写进去，
+  但路径不存在会报 `invalid output provided`（v1.14.1 ✅实测）。默认缩进，`-minify` 变紧凑。
 - `-format=csv`：`-output` 必须是目录，每个数据类别写成一个 csv 文件。
 - `-format=csdm`：`cs-demo-manager` 用的格式（喂给它的导入器）。
 
@@ -242,6 +246,84 @@ static string RunCsda(string demoPath, string outputJson, string csdaExe)
 4. **Kill 表含自杀与 C4/世界伤害死亡**，自己按指标口径过滤。
 5. **Rating 是本地近似**，非 HLTV 官方，展示时要标注。
 6. 输出里的时间字段是 tick/frame，要自己按 `tickrate` 换算秒。
+
+### 9.1 随包二进制 = v1.14.1 + ADR 口径补丁（0.4.1 起）
+
+**结论先说**：随包二进制是上游 v1.14.1 源码加一处伤害口径补丁自行构建的，本库指标与 0.4.0（v1.11.0）**逐字段一致**。
+直接用官方 Release 的二进制会改 ADR / eADR / Rating30，**不要直接换**。
+
+**为什么必须打补丁**：csda 的 `pkg/api/damage.go` 一直写 `event.HealthDamageTaken`，
+变的是上游 demoinfocs 对该字段的**语义**。breaking 修复
+`def293c1 fix!: PlayerHurt.HealthDamageTaken = HP actually removed`（2026-10-18，随 csda v1.12.0 进入）
+把它从「非致命一击取原始 `dmg_health`、致命一击取剩余血量」改成「每一击都取命中前血量减命中后血量」。
+demoinfocs 自己的注释写明：`HealthDamage` 才是 **HLTV 的 ADR 求和对象**，`HealthDamageTaken` 对应游戏内计分板的伤害统计。
+csda 的 `healthDamage` / ADR / `utilityDamage` / `hltvRating2` 全部由这些伤害条目求和，所以一处语义变化会连带改掉本库多项指标。
+
+**口径决策（2026-11-14）**：维持现有（HLTV）口径不变，升级只换解析器、不改数字。
+
+**补丁内容**（唯一改动，`pkg/api/damage.go`）：
+
+```go
+// 新增函数
+func hltvHealthDamage(event events.PlayerHurt) int {
+	if event.Health == 0 {
+		return event.HealthDamageTaken
+	}
+
+	return min(event.HealthDamage, 100)
+}
+
+// newDamageFromGameEvent 内
+- HealthDamage: math.Max(0, event.HealthDamageTaken),
++ HealthDamage: math.Max(0, hltvHealthDamage(event)),
+```
+
+`event.Health` 是命中后血量：为 0 即致命一击，此时新版的 `HealthDamageTaken` 恰好等于旧版的「剩余血量」；
+非致命一击取原始 `dmg_health` 并封顶 100，与旧版 demoinfocs 的 `min(dmg_health, 100)` 一致。
+`armorDamage` 两版语义相同，不用动。csda 全仓库只有这一处引用 `HealthDamageTaken`。
+
+**实测对账**（golden demo `perfect-world.dem`，v1.11.0 vs 补丁版 v1.14.1）：
+
+| 项 | 结果 |
+|---|---|
+| 10 名玩家的全部标量字段（含 `healthDamage` / ADR / KAST / `hltvRating2` / `utilityDamage`） | **0 处差异** |
+| 518 条 damages 的 `healthDamage` / `armorDamage` | **0 处差异**（合计 14648 → 14648） |
+| rounds / kills / damages / shots / playersBuy / playerEconomies / clutches 条数 | 18 / 135 / 518 / 2724 / 640 / 180 / 21，全不变 |
+| `dotnet test` | 62 全过，golden 期望表一个字没改 |
+
+不打补丁的话，同一 demo 上 ADR 会从 `72.94444` 变成 `73.5`、`hltvRating2` 从 `0.9322101` 变成 `0.93398786`
+（518 条伤害里 112 条各 +1）。
+
+**其它 v1.11.0 → v1.14.1 的变更（本库均不受影响）**：
+
+- **breaking：移除 `frame` 字段**，连带 `weaponUniqueId` / `weaponId` / `projectileId` / `grenadeId` 也不再输出。
+  本库 `CsdaDtos` 里没有这些字段。
+- **队名改为从玩家 clan tag 识别**：`Team A` → `TEAM A`。`CsdaDtos` 声明了 `teamAName/teamBName` 但从未映射进模型，故无影响。
+- **`rounds[].duration` 改为按 tick 计算**（`fix: compute rounds duration from ticks instead of frames`），
+  18 个回合的值都变了；本库不消费该字段。
+- **新增 `playerPositionSamples`**：每秒给每个存活玩家采一条坐标（冻结时间结束 → 回合结束），
+  **不需要 `-positions`，默认就导出**，字段 `tick / roundNumber / steamId / name / side / x / y / z`；
+  golden 上 9648 条，JSON 体积 2.6MB → 4.0MB。上游注释说明就是给热力图这类聚合视图用的——
+  **做热力图可以直接用它，不必再引入第二个解析器**。本库目前未映射。
+- 新增 `coaches`（教练名单）；positions 的若干性能优化（每 tick 采一次、边解析边落盘、降内存），只影响 `-positions` / CSDM 路径。
+- demoinfocs pin：`20260902223806-5be4d04e24fa` → `20261112153901-decf1a65caee`；期间还有一条
+  `fix: decode fixed8/16/32 encoded integer fields as raw bits`，在 golden 上未造成任何数字变化。
+
+**怎么复现这个构建（下次升级照做）**：
+
+1. 本机 Go ≥ 1.27（`go.mod` 要求 `go 1.27.0`）。
+2. 拉源码：`git clone` 到 GitHub 可能超时，改用
+   `gh api repos/akiver/cs-demo-analyzer/tarball/v<版本> > src.tar.gz` 再解包。
+3. 拉依赖：`proxy.golang.org` 不通，用 `GOPROXY=https://goproxy.cn,direct go mod download`。
+4. 打上上面的补丁，按上游 Makefile 的参数编 5 个平台。
+   **`-ldflags=-s -w` 不能漏**，否则每个二进制大约 5MB、包体积涨约 27MB：
+   ```bash
+   CGO_ENABLED=0 GOOS=darwin GOARCH=arm64 go build "-ldflags=-s -w" -trimpath -o csda ./cmd/cli
+   # darwin/amd64、linux/amd64、linux/arm64、windows/amd64（输出 csda.exe）同理
+   ```
+5. 换掉 `src/Cs2Demo.Analytics/csda/<rid>/`，跑 `dotnet test`。**期望表应当一个字都不用改**；
+   一旦有数字变化，先查补丁是否失效（上游可能又改了伤害逻辑），别直接改期望表把漂移固化下来。
+6. 口径若真要变，按 AGENTS.md 要求先写明 `docs/formulas.md` 再发版。
 
 ---
 

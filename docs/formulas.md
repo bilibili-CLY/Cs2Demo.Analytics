@@ -11,8 +11,9 @@
 - `Rounds`：有效回合数（csda 已剔除热身、未打完的回合）。
 - `Kills / Deaths / Assists`：直接取 csda 的 `killCount / deathCount / assistCount`
   （自杀不计；**队杀与 C4 炸死记死亡**，与官方记分板一致；凶手为空，不记 K）。
-- `TotalDamage`：csda 的 `healthDamage`——**原始扣血，不折叠溢出**；
-  自伤/队伤/世界伤害 csda 已过滤。有回合时恒有值。
+- `TotalDamage`：csda 的 `healthDamage`——**非致命一击取原始 `dmg_health`，致命一击封顶到受害者命中前的剩余血量**
+  （HLTV 的 ADR 求和口径）；自伤/队伤/世界伤害 csda 已过滤。有回合时恒有值。
+  上游 csda 从 v1.12.0 起改成「每一击都取实际掉血」，本库随包二进制打了补丁维持上述口径，见 `docs/csda-integration.md` §9.1。
 - `SurvivedRounds`：`Rounds - Deaths`（csda 死亡数口径）。
 - `KastRounds`：由 csda 的 KAST 百分数回推：`round(KAST% / 100 * Rounds)`。
 
@@ -49,8 +50,8 @@
 1. **数值口径的来源不同**：本库的 KPR / ADR / KAST / Rating2.0 取自 csda；
    参考仓库用 DemoFile 自算。系数一致，但底层解析口径（伤害是否折叠溢出的处理、
    KAST 回合判定、团队/世界伤害的过滤）以各自实现为准，数值可能有小差异。
-2. **Additive 差异（口径变化）**：本库 0.3.0 起 ADR 取 csda 原始扣血（**不折叠溢出**），
-   KAST 为 0~100 百分数，与旧版（`"1.0.0"` 口径）不可直接比较。
+2. **Additive 差异（口径变化）**：本库 0.3.0 起 ADR 取 csda 的 `healthDamage`（原始 `dmg_health`，致命一击封顶到剩余血量），
+   KAST 为 0~100 百分数，与旧版（`"1.0.0"` 口径）不可直接比较。0.4.1 把 csda 升到 v1.14.1 时用补丁保持该口径不变（golden 逐字段零差异）。
 3. **负数截断一致**：Rating 类指标都做 `max(0, value)` 再保留 3 位小数。
 4. **零回合口径一致**：零回合时 6 项全为 null；有回合时全部有值（不再有“缺伤害 → ADR 为 null”）。
 
