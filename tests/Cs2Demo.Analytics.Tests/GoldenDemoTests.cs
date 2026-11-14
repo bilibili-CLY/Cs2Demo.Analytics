@@ -1,4 +1,3 @@
-using System.Globalization;
 using Cs2Demo.Analytics;
 using Xunit.Abstractions;
 
@@ -42,12 +41,13 @@ public sealed class GoldenDemoTests
         Assert.Equal(105278, data.Meta.TickCount);
         Assert.Equal(1644, data.Meta.DurationSeconds);
 
-        var expectedDate = DateTimeOffset.Parse("2026-10-11T00:55:27.632014768+08:00", CultureInfo.InvariantCulture);
+        // csda 的 date 实测取 demo 文件的修改时间（不是真实比赛时间），会随下载/拷贝变化。
+        var modified = File.GetLastWriteTimeUtc(path);
         Assert.NotNull(data.Meta.MatchDate);
         Assert.InRange(
-            data.Meta.MatchDate!.Value.ToUnixTimeSeconds(),
-            expectedDate.ToUnixTimeSeconds() - 1,
-            expectedDate.ToUnixTimeSeconds() + 1);
+            data.Meta.MatchDate!.Value.UtcDateTime,
+            modified.AddSeconds(-1),
+            modified.AddSeconds(1));
 
         Assert.Equal(18, data.Rounds.Count);
         Assert.Equal(10, data.Players.Count);

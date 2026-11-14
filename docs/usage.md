@@ -71,7 +71,7 @@ DemoAnalyzer.CsdaExecutablePath = "/opt/tools/csda";
 | `Source` | `string` | csda 自动识别的平台（`perfectworld` / `faceit` / `5eplay` / `valve` …）；未知为 `""` |
 | `ServerName` | `string` | demo header 的服务器名（可能含中文）；缺失为 `""` |
 | `DurationSeconds` | `int` | 整场时长（秒）；缺失或非法为 `0` |
-| `MatchDate` | `DateTimeOffset?` | 比赛时间（含时区偏移）；缺失或非法为 `null` |
+| `MatchDate` | `DateTimeOffset?` | csda 的 `date`（实测为 demo 文件修改时间，不一定是真实比赛时间）；缺失或非法为 `null` |
 | `TickCount` | `int` | demo 总 tick 数；未知为 `0` |
 
 解析口径：热身回合不解析出来（csda 已剔除）；自杀丢掉，BOT 不计入；

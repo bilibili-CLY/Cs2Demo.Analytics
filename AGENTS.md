@@ -77,7 +77,8 @@
   0.3.0 发布前已用外部控制台项目端到端验证（装包 → 输出目录自动带 `csda/<rid>/` → 跑 golden demo，V1/V30 数一致）；
   0.4.0 / 0.4.1 由 GitHub Actions 发版（62 个测试通过后自动 pack + OIDC 推包）。
   0.4.1 只升解析器（csda v1.14.1 + 口径补丁），指标数字与 0.4.0 一致，公式版本不变。
-  0.5.0 新增 5 个 `MatchMeta` 头部字段（来源 / 服务器名 / 时长秒 / 比赛时间 / 总 tick），纯增量，指标与 0.4.1 零变化。
+  0.5.0 新增 5 个 `MatchMeta` 头部字段（来源 / 服务器名 / 时长秒 / 日期 / 总 tick），纯增量，指标与 0.4.1 零变化；
+  其中 `MatchDate` 实测是 demo 文件修改时间（csda 的 `date`），不是真实比赛时间。
   包 README 已随包（`README.md` + `PackageReadmeFile`）。
   多机共享再考虑 GitHub/Azure 这类带 token 的私源；`dotnet format` 未配置，暂不用。
 - 故障排查：CI 若挂在「下载 golden demo」这步（日志 `release not found`），说明 `dem-data`

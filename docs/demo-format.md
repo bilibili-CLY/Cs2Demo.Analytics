@@ -58,7 +58,7 @@ Rating30 的经济加权与 Swing v2 需要这些字段，`CsdaMatchMapper` 已�
 | `damages[].victimArmor` | `DamageEvent.VictimArmor` | 命中时对方护甲 |
 | `clutches[]` | `MatchData.Clutches`（`ClutchInfo`） | 残局：`opponentCount / side / hasWon / clutcherSteamId / clutcherSurvived` |
 | `tickrate / maxRounds` | `MatchMeta.TickRate / MaxRounds` | 用于炸弹不可逆阶段判断与加时赛识别；缺失时为 0 |
-| `source / serverName / date / duration / tickCount` | `MatchMeta.Source / ServerName / MatchDate / DurationSeconds / TickCount` | duration 为纳秒转秒；date 容错解析，非法为 null |
+| `source / serverName / date / duration / tickCount` | `MatchMeta.Source / ServerName / MatchDate / DurationSeconds / TickCount` | duration 为纳秒转秒；date 容错解析，非法为 null；date 实测取文件修改时间，不是真实比赛时间 |
 
 `playerEconomies` 覆盖到每回合每人（golden demo 为 10 人 × 18 回合 = 180 条），是存活表和经济加权的共同数据源。
 
@@ -101,3 +101,5 @@ csda 没有逐回合存活表，本库用 `playerEconomies` + 死亡名单反推
 - `Meta.MapName` 取 csda 的 `mapName`；`Meta.FileSha256` 由 `ParseFile` 本地计算。
 - 头部字段（`source` / `serverName` / `date` / `duration` / `tickCount`）任何缺失或异常都只降级为空值
   （`""` / `0` / `null`），不抛异常；解析成功与否仍由玩家/回合校验决定。
+- ⚠️ `date` 不是 demo header 里的比赛时间：实测 csda 取的是**文件修改时间**
+  （改文件 mtime 后输出随之变化），下载/拷贝到新机器后会变，不能当作真实比赛时间使用。

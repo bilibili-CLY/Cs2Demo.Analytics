@@ -17,7 +17,7 @@ public sealed class MatchMeta
     public int DurationSeconds { get; set; }
     /// <summary>demo header 里的服务器名（可能含中文）；缺失为空字符串。</summary>
     public string ServerName { get; set; } = "";
-    /// <summary>比赛时间（demo header 的 date，含时区偏移）；缺失或非法时为 null。</summary>
+    /// <summary>csda 的 date（实测取 demo 文件修改时间，不一定是真实比赛时间）；缺失或非法时为 null。</summary>
     public DateTimeOffset? MatchDate { get; set; }
     /// <summary>demo 总 tick 数；未知时为 0。</summary>
     public int TickCount { get; set; }
