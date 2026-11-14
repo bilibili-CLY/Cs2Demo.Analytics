@@ -1,3 +1,4 @@
+using System.Globalization;
 using Cs2Demo.Analytics;
 
 namespace Cs2Demo.Analytics.Tests;
@@ -156,5 +157,66 @@ public sealed class CsdaMatchMapperTests
     internal void Side_MapsCsdaTeamEnum(int side, string expected)
     {
         Assert.Equal(expected, CsdaMatchMapper.Side(side));
+    }
+
+    [Fact]
+    public void Map_HeaderFields_MapsAndTrims()
+    {
+        var data = CsdaMatchMapper.Map(
+            "{" +
+            "\"mapName\":\"de_test\"," +
+            "\"source\":\" faceit \"," +
+            "\"duration\":1644000000000," +
+            "\"serverName\":\"  Test Server  \"," +
+            "\"date\":\"2026-07-14T19:11:58.844332832+08:00\"," +
+            "\"tickCount\":105278" +
+            "}");
+
+        Assert.Equal("faceit", data.Meta.Source);
+        Assert.Equal("Test Server", data.Meta.ServerName);
+        Assert.Equal(105278, data.Meta.TickCount);
+        Assert.Equal(1644, data.Meta.DurationSeconds);
+
+        var expected = DateTimeOffset.Parse("2026-07-14T19:11:58.844332832+08:00", CultureInfo.InvariantCulture);
+        Assert.NotNull(data.Meta.MatchDate);
+        Assert.Equal(expected.Offset, data.Meta.MatchDate!.Value.Offset);
+        Assert.Equal(expected.ToUnixTimeSeconds(), data.Meta.MatchDate.Value.ToUnixTimeSeconds());
+    }
+
+    [Fact]
+    public void Map_HeaderFields_MissingBecomeEmpty()
+    {
+        var meta = CsdaMatchMapper.Map("{\"mapName\":\"de_test\"}").Meta;
+
+        Assert.Equal("", meta.Source);
+        Assert.Equal("", meta.ServerName);
+        Assert.Equal(0, meta.TickCount);
+        Assert.Equal(0, meta.DurationSeconds);
+        Assert.Null(meta.MatchDate);
+    }
+
+    [Theory]
+    [InlineData("")]
+    [InlineData(",\"date\":\"\"")]
+    [InlineData(",\"date\":null")]
+    [InlineData(",\"date\":\"0001-01-01T00:00:00Z\"")]
+    [InlineData(",\"date\":\"not-a-date\"")]
+    public void Map_InvalidDateBecomesNull(string dateFragment)
+    {
+        var data = CsdaMatchMapper.Map("{\"mapName\":\"de_test\"" + dateFragment + "}");
+
+        Assert.Null(data.Meta.MatchDate);
+    }
+
+    [Theory]
+    [InlineData("", 0)]
+    [InlineData(",\"duration\":0", 0)]
+    [InlineData(",\"duration\":-5000000000", 0)]
+    [InlineData(",\"duration\":1644000000000", 1644)]
+    public void Map_DurationBecomesSeconds(string durationFragment, int expected)
+    {
+        var data = CsdaMatchMapper.Map("{\"mapName\":\"de_test\"" + durationFragment + "}");
+
+        Assert.Equal(expected, data.Meta.DurationSeconds);
     }
 }

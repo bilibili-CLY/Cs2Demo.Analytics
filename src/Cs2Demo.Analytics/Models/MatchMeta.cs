@@ -11,4 +11,14 @@ public sealed class MatchMeta
     public int MaxRounds { get; set; }
     /// <summary>demo 文件 SHA256（流式解析时为空字符串）。</summary>
     public string FileSha256 { get; set; } = "";
+    /// <summary>解析平台（csda 的 source，如 perfectworld / faceit / 5eplay）；未知为空字符串。</summary>
+    public string Source { get; set; } = "";
+    /// <summary>整场 demo 时长（秒），取 csda 的 duration；缺失或非法时为 0。</summary>
+    public int DurationSeconds { get; set; }
+    /// <summary>demo header 里的服务器名（可能含中文）；缺失为空字符串。</summary>
+    public string ServerName { get; set; } = "";
+    /// <summary>比赛时间（demo header 的 date，含时区偏移）；缺失或非法时为 null。</summary>
+    public DateTimeOffset? MatchDate { get; set; }
+    /// <summary>demo 总 tick 数；未知时为 0。</summary>
+    public int TickCount { get; set; }
 }

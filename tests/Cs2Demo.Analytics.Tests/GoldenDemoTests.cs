@@ -1,3 +1,4 @@
+using System.Globalization;
 using Cs2Demo.Analytics;
 using Xunit.Abstractions;
 
@@ -36,6 +37,18 @@ public sealed class GoldenDemoTests
 
         Assert.Equal(ExpectedSha256, data.Meta.FileSha256);
         Assert.Equal("de_nuke", data.Meta.MapName);
+        Assert.Equal("perfectworld", data.Meta.Source);
+        Assert.Equal("完美世界竞技平台天梯服务器", data.Meta.ServerName);
+        Assert.Equal(105278, data.Meta.TickCount);
+        Assert.Equal(1644, data.Meta.DurationSeconds);
+
+        var expectedDate = DateTimeOffset.Parse("2026-10-11T00:55:27.632014768+08:00", CultureInfo.InvariantCulture);
+        Assert.NotNull(data.Meta.MatchDate);
+        Assert.InRange(
+            data.Meta.MatchDate!.Value.ToUnixTimeSeconds(),
+            expectedDate.ToUnixTimeSeconds() - 1,
+            expectedDate.ToUnixTimeSeconds() + 1);
+
         Assert.Equal(18, data.Rounds.Count);
         Assert.Equal(10, data.Players.Count);
         Assert.Equal(135, data.Kills.Count);

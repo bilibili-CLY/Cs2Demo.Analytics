@@ -1,8 +1,9 @@
 # AGENTS.md — Cs2Demo.Analytics
 
-> 项目已落地；0.1.0 / 0.2.0 / 0.3.0 / 0.4.0 / 0.4.1（当前）已发布到 nuget.org。
+> 项目已落地；0.1.0 / 0.2.0 / 0.3.0 / 0.4.0 / 0.4.1 已发布到 nuget.org，0.5.0（当前开发版）待发布。
 > 0.3.0 起解析后端改为 csda，并把 Rating30 升级为经济加权版；0.4.0 起 Rating30 为 3.2.0（六档装备 + 5s 补枪窗口，见「技术栈」）；
-> 0.4.1 把 csda 升到 v1.14.1 并打补丁维持 ADR 口径，指标数字不变。构建/测试/打包命令均已验证。
+> 0.4.1 把 csda 升到 v1.14.1 并打补丁维持 ADR 口径，指标数字不变。
+> 0.5.0 为纯增量公开 API：`MatchMeta` 新增 `Source` / `ServerName` / `DurationSeconds` / `MatchDate` / `TickCount`。构建/测试/打包命令均已验证。
 
 ## 目标与交付物
 
@@ -71,11 +72,12 @@
   首次用之前：nuget.org 建 Trusted Publishing 策略
  （Owner=你的 nuget 用户名，仓库 `bilibili-CLY/Cs2Demo.Analytics`，workflow 文件 `publish.yml`），
   再在 GitHub 仓库 Secrets 加 `NUGET_USER`（nuget.org 用户名，不是邮箱）。
-- 已发布到 nuget.org：`0.1.0` / `0.2.0` / `0.3.0` / `0.4.0` / **`0.4.1`**（`dotnet add package Cs2Demo.Analytics`）。
+- 已发布到 nuget.org：`0.1.0` / `0.2.0` / `0.3.0` / `0.4.0` / **`0.4.1`**；**`0.5.0` 已改版本号，待确认后发版**（`dotnet add package Cs2Demo.Analytics`）。
   0.1.0 最早也发过本地私源 `~/nuget-feed`（源名 `Local`）。
   0.3.0 发布前已用外部控制台项目端到端验证（装包 → 输出目录自动带 `csda/<rid>/` → 跑 golden demo，V1/V30 数一致）；
   0.4.0 / 0.4.1 由 GitHub Actions 发版（62 个测试通过后自动 pack + OIDC 推包）。
   0.4.1 只升解析器（csda v1.14.1 + 口径补丁），指标数字与 0.4.0 一致，公式版本不变。
+  0.5.0 新增 5 个 `MatchMeta` 头部字段（来源 / 服务器名 / 时长秒 / 比赛时间 / 总 tick），纯增量，指标与 0.4.1 零变化。
   包 README 已随包（`README.md` + `PackageReadmeFile`）。
   多机共享再考虑 GitHub/Azure 这类带 token 的私源；`dotnet format` 未配置，暂不用。
 - 故障排查：CI 若挂在「下载 golden demo」这步（日志 `release not found`），说明 `dem-data`

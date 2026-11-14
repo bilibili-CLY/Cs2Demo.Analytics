@@ -61,8 +61,18 @@ DemoAnalyzer.CsdaExecutablePath = "/opt/tools/csda";
 
 没有 `ParseStream` 了（csda 只吃本地文件路径）。`MatchData` 里有什么：
 `Players`（玩家名单，含 csda 聚合值 `PlayerInfo.Csda`）、`Rounds`（回合）、`Kills`（击杀事件）、
-`Damages`（伤害事件）、`Survivals`（每回合谁存活）、`Meta`（地图名、文件哈希）。
+`Damages`（伤害事件）、`Survivals`（每回合谁存活）、`Meta`（地图名、tickrate、回合上限、文件哈希及 demo 头部信息）。
 `Meta.FileSha256` 由 `ParseFile` 计算。
+
+`Meta` 头部字段速查：
+
+| 字段 | 类型 | 说明 |
+|---|---|---|
+| `Source` | `string` | csda 自动识别的平台（`perfectworld` / `faceit` / `5eplay` / `valve` …）；未知为 `""` |
+| `ServerName` | `string` | demo header 的服务器名（可能含中文）；缺失为 `""` |
+| `DurationSeconds` | `int` | 整场时长（秒）；缺失或非法为 `0` |
+| `MatchDate` | `DateTimeOffset?` | 比赛时间（含时区偏移）；缺失或非法为 `null` |
+| `TickCount` | `int` | demo 总 tick 数；未知为 `0` |
 
 解析口径：热身回合不解析出来（csda 已剔除）；自杀丢掉，BOT 不计入；
 **队杀与 C4 炸死记死亡**（凶手为空，不记击杀）；伤害只记敌方造成的扣血

@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.Json;
 
 namespace Cs2Demo.Analytics;
@@ -25,6 +26,11 @@ internal static class CsdaMatchMapper
                 MapName = match.MapName ?? "",
                 TickRate = match.Tickrate,
                 MaxRounds = match.MaxRounds,
+                Source = (match.Source ?? "").Trim(),
+                ServerName = (match.ServerName ?? "").Trim(),
+                TickCount = match.TickCount,
+                DurationSeconds = ToDurationSeconds(match.DurationNanoseconds),
+                MatchDate = ParseMatchDate(match.Date),
             },
         };
 
@@ -259,6 +265,29 @@ internal static class CsdaMatchMapper
             FiveKillCount = player.FiveKillCount,
         },
     };
+
+    private static int ToDurationSeconds(long? durationNanoseconds)
+    {
+        if (durationNanoseconds is not > 0)
+            return 0;
+        var seconds = durationNanoseconds.Value / 1_000_000_000d;
+        if (seconds >= int.MaxValue)
+            return int.MaxValue;
+        return (int)Math.Round(seconds, MidpointRounding.AwayFromZero);
+    }
+
+    private static DateTimeOffset? ParseMatchDate(string? raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw))
+            return null;
+        if (!DateTimeOffset.TryParse(raw, CultureInfo.InvariantCulture, DateTimeStyles.RoundtripKind,
+                out var value))
+            return null;
+        // csda 在缺失日期时旧版本可能写全零值，按「未知」处理。
+        if (value.Year < 2000)
+            return null;
+        return value;
+    }
 
     /// <summary>csda 的 common.Team 整数枚举：0 未定 / 1 观战 / 2 T / 3 CT。</summary>
     internal static string Side(int side) => side switch

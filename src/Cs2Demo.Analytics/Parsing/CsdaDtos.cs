@@ -8,6 +8,12 @@ internal sealed class CsdaMatch
 {
     [JsonPropertyName("mapName")] public string? MapName { get; set; }
     [JsonPropertyName("game")] public string? Game { get; set; }
+    [JsonPropertyName("source")] public string? Source { get; set; }
+    [JsonPropertyName("duration")] public long? DurationNanoseconds { get; set; }
+    [JsonPropertyName("serverName")] public string? ServerName { get; set; }
+    // 必须是 string：csda 历史上会输出空串/全零日期，直接转 DateTimeOffset 会抛异常。
+    [JsonPropertyName("date")] public string? Date { get; set; }
+    [JsonPropertyName("tickCount")] public int TickCount { get; set; }
     [JsonPropertyName("tickrate")] public int Tickrate { get; set; }
     [JsonPropertyName("maxRounds")] public int MaxRounds { get; set; }
     [JsonPropertyName("players")] public Dictionary<string, CsdaPlayer>? Players { get; set; }
